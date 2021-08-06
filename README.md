@@ -61,12 +61,12 @@ say to-uml("Lingua::NumericWordForms"):!methods:!attributes
 [WK2] Wikipedia entry,
 ["PlantUML"](https://en.wikipedia.org/wiki/PlantUML).
 
-[UMLD1] https://www.uml-diagrams.org
+[UMLD1] [uml-diagrams.org](https://www.uml-diagrams.org).
 
-[PUML1] https://plantuml.com
+[PUML1] [plantuml.com](https://plantuml.com).
 
-[PUML2] http://www.plantuml.com/plantuml/
+[PUML2] [PlantUML online demo server](http://www.plantuml.com/plantuml).
 
-[ES1] Eugene Steinberg, Vojtech Krasa,
+[ES1] Eugene Steinberg and Vojtech Krasa,
 [PlantUML integration IntelliJ IDEA plugin](https://plugins.jetbrains.com/plugin/7017-plantuml-integration),
-[JetBrains Plugins Marketplace](https://plugins.jetbrains.com)
+[JetBrains Plugins Marketplace](https://plugins.jetbrains.com).
