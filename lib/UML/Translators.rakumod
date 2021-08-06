@@ -1,5 +1,9 @@
 use v6;
 
+#============================================================
+# Meta types
+#============================================================
+
 #| Meta types for classes
 my $classTypes = <Perl6::Metamodel::ClassHOW>;
 
@@ -12,6 +16,10 @@ my $roleTypes = <Perl6::Metamodel::CurriedRoleHOW Perl6::Metamodel::ConcreteRole
 #| Meta types for packages / name-spaces
 my $nameSpaceTypes = <Perl6::Metamodel::PackageHOW>;
 
+
+#============================================================
+# TraverseNameSpace
+#============================================================
 
 #| Traverse name-space for other name-spaces and classes/grammars/roles.
 sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace) {
@@ -46,6 +54,10 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace) {
 }
 
 
+#============================================================
+# ClassData
+#============================================================
+
 #| Derive class data.
 sub ClassData($class) {
     my $type =
@@ -54,10 +66,12 @@ sub ClassData($class) {
             else { 'class' }
 
     %( :$type, attributes => $class.^attributes>>.^name, methods => $class.^methods>>.name, parents => $class.^parents, roles => $class.^roles.map( { $_.^name } ))
-
-
 }
 
+
+#============================================================
+# ClassDataToPlantUML
+#============================================================
 
 #| Generate PlantUML code from the class/grammar/role data.
 sub ClassDataToPlantUML($class, Bool :$attributes = True, Bool :$methods = True) {
@@ -102,6 +116,27 @@ sub ClassDataToPlantUML($class, Bool :$attributes = True, Bool :$methods = True)
     $plantUML
 }
 
+#============================================================
+# to-plant-uml
+#============================================================
+
+#| Get namespace proto
+proto get-namespace-classes( $packageNames ) is export {*}
+
+#| Get classes of a single namespace
+multi get-namespace-classes(Str $packageName ) {
+    get-namespace-classes( [$packageName] )
+}
+
+#| Get classes of a many namespaces
+multi get-namespace-classes(Positional $packageNames) {
+    flat( $packageNames.map({ TraverseNameSpace($_, $_) }) );
+}
+
+
+#============================================================
+# to-plant-uml
+#============================================================
 
 #| Translation to PlantUML proto
 proto to-plant-uml( $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*}
@@ -129,6 +164,10 @@ multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attrib
     $res;
 }
 
+
+#============================================================
+# to-uml
+#============================================================
 
 #| Proto of the main translation function
 proto to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*};
