@@ -1,0 +1,29 @@
+{
+  "perl": "6.d",
+  "name": "UML::Translators",
+  "api": "1",
+  "auth": "github:antononcube",
+  "version": "0.1.0",
+  "description": "A package for translating code to UML specifications and UML specifications to code.",
+  "authors": [
+    "Anton Antonov"
+  ],
+  "license": "Artistic-2.0",
+  "provides": {
+    "UML::Translators": "lib/UML/Translators.rakumod"
+  },
+  "depends": [],
+  "build-depends": [],
+  "test-depends": [],
+  "resources": [
+  ],
+  "tags": [
+    "PlantUML",
+    "UML",
+    "code processing",
+    "introspection",
+    "translation",
+    "translator"
+  ],
+  "source-url": "https://github.com/antononcube/Raku-UML-Translators"
+}
