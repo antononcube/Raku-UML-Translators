@@ -8,8 +8,12 @@ Currently, the package only translates Object-Oriented Programming (OOP) Raku co
 [PlantUML](https://plantuml.com). 
 
 A fully fledged version of this package would translate:
-- C++. Java, Kotlin, Raku code into UML specs
-- UML specs into C++, Java, Kotlin, Raku code
+- C++, Java, Kotlin, or Raku code into UML specs
+- UML specs into C++, Java, Kotlin, or Raku code
+
+Currently, the UML specs can be generated or given in PlantUML's language.
+A fully fledged version of this package would be able to use UML specifications
+encoded in XML and JSON.
 
 ## Installation
 
