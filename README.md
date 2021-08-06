@@ -27,6 +27,23 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 
 ## Examples
 
+### OS command line terminal
+
+```shell
+to-uml-spec --/method --/attributes "Lingua::NumericWordForms"
+```
+
+### Raku session
+
+Get the classes of a name space:
+
+```perl6
+use UML::Translators;
+say get-namespace-classes( "Lingua::NumericWordForms" ).raku;
+```
+
+Get PlantUML code:
+
 ```perl6
 use UML::Translators;
 say to-uml("Lingua::NumericWordForms"):!methods:!attributes
