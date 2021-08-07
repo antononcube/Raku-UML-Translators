@@ -10,7 +10,7 @@ my $classTypes = <Perl6::Metamodel::ClassHOW>;
 #| Meta types for grammars
 my $grammarTypes = <Perl6::Metamodel::GrammarHOW>;
 
-#| Meta types for rules
+#| Meta types for roles
 my $roleTypes = <Perl6::Metamodel::CurriedRoleHOW Perl6::Metamodel::ConcreteRoleHOW Perl6::Metamodel::RolePunning Perl6::Metamodel::RoleContainer Perl6::Metamodel::ParametricRoleGroupHOW>;
 
 #| Meta types for packages / name-spaces
