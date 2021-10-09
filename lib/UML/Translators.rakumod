@@ -22,7 +22,7 @@ my $nameSpaceTypes = <Perl6::Metamodel::PackageHOW>;
 #============================================================
 
 #| Traverse name-space for other name-spaces and classes/grammars/roles.
-sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace) {
+sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace --> List) {
 
     require ::($packageName);
     my $pkg = ::($nameSpace);
@@ -30,17 +30,17 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace) {
     #say '$pkg::.WHO = ', $pkg::.WHO;
     my $pkg2 = $pkg::.WHO;
 
-    my $symbols = (|$pkg2);
+    my $symbols = $pkg.HOW.^name (elem) $classTypes ?? ($packageName => $pkg, |$pkg2) !! (|$pkg2);
     #say '$symbols =', $symbols;
 
-    #say $symbols.map({ $_.key => $_.value.HOW.^name });
+    #say '$symbols.map : ', $symbols.map({ $_.key => $_.value.HOW.^name });
 
-    my @classes = $symbols
+    my @classes is List = $symbols
             .grep({ $_.value.HOW.^name (elem) (|$classTypes, |$roleTypes, |$grammarTypes) })
             .map(*.value)
             .unique;
 
-    my @childNameSpaces = $symbols
+    my @childNameSpaces is List = $symbols
             .grep({ .value.HOW.^name (elem) $nameSpaceTypes })
             .grep({ .key ne 'EXPORT' })
             .map(*.value)
@@ -49,8 +49,11 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace) {
     #say '$classes =', @classes.raku;
     #say '$childNameSpaces =', @childNameSpaces.raku;
 
-    if @childNameSpaces.elems == 0 { @classes }
-    else { flat @classes, @childNameSpaces.map({ TraverseNameSpace($packageName, $_.raku) }) }
+    my $res =
+            do if @childNameSpaces.elems == 0 { @classes }
+            else { flat( @classes, @childNameSpaces.map({ TraverseNameSpace($packageName, $_.raku) }) ) };
+
+    $res.list
 }
 
 
