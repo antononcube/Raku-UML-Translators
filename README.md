@@ -33,7 +33,7 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 
 ### OS command line terminal
 
-Using the script [`to-uml-spec.raku`](./examples/to-uml-spec.raku):
+Using the script [`to-uml-spec.raku`](bin/to-uml-spec.raku):
 
 ```shell
 to-uml-spec.raku --/methods --/attributes "Lingua::NumericWordForms"
