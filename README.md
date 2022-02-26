@@ -15,6 +15,8 @@ Currently, the UML specs can be generated or given in PlantUML's language.
 A fully fledged version of this package would be able to use UML specifications
 encoded in XML and JSON.
 
+------ 
+
 ## Installation
 
 ### From PAUSE
@@ -29,14 +31,33 @@ zef install UML::Translators
 zef install https://github.com/antononcube/Raku-UML-Translators.git 
 ```
 
+------ 
+
+## Arguments
+
+```shell
+> to-uml-spec --help
+Usage:
+  to-uml-spec [--type=<Str>] [-I=<Str>] [--attributes] [--methods] [--conciseGrammarClasses] <packageName> -- Make a UML diagram for a specified package.
+  
+    <packageName>              Package name.
+    --type=<Str>               Type of the UML diagram. [default: 'class']
+    -I=<Str>                   Using include path to find libraries. [default: '']
+    --attributes               Should the class attributes be included in the UML diagrams or not? [default: True]
+    --methods                  Should the class methods be included in the UML diagrams or not? [default: True]
+    --conciseGrammarClasses    Should grammar classes be shortened or not? [default: True]
+```
+
+------ 
+
 ## Examples
 
 ### OS command line terminal
 
-Using the script [`to-uml-spec.raku`](bin/to-uml-spec.raku):
+Using the script [`to-uml-spec`](bin/to-uml-spec):
 
 ```shell
-to-uml-spec.raku --/methods --/attributes "Lingua::NumericWordForms"
+to-uml-spec --/methods --/attributes "Lingua::NumericWordForms"
 ```
 
 (That script has to be an executable.)
@@ -56,6 +77,8 @@ Get PlantUML code:
 use UML::Translators;
 say to-uml("Lingua::NumericWordForms"):!methods:!attributes
 ```
+
+------ 
 
 ## References
 
