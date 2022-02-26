@@ -6,11 +6,11 @@ use UML::Translators;
 
 #| Make a UML diagram for a specified package.
 sub MAIN(Str $packageName,                     #= Package name.
-         Str :$type = "class",                 #= Type of the of the UML diagram.
+         Str :$type = "class",                 #= Type of the UML diagram.
          Str :I($path) = '',                   #= Using include path to find libraries.
          Bool :$attributes = True,             #= Should the class attributes be included in the UML diagrams or not?
          Bool :$methods = True,                #= Should the class methods be included in the UML diagrams or not?
-         Bool :$conciseGrammarClasses = True   #= Should grammar classes be given concise names or not?
+         Bool :$conciseGrammarClasses = True   #= Should grammar classes be shortened or not?
          ) {
 
     # If there is a library argument
