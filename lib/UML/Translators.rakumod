@@ -77,20 +77,24 @@ sub ClassData($class) {
 #============================================================
 
 #| Generate PlantUML code from the class/grammar/role data.
-sub ClassDataToPlantUML($class, Bool :$attributes = True, Bool :$methods = True) {
+sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods = True) {
 
     my %classData = ClassData($class);
+
+    if Routine ∈ %classData<parents> {
+        $class = $class.name.subst('-', '_'):g;
+        %classData<type> = 'routine';
+    }
 
     my $annot =
             do if %classData<type> eq 'role' { '<<role>>' }
             elsif %classData<type> eq 'grammar' { '<<grammar>>' }
+            elsif %classData<type> eq 'routine' { '<<routine>>' }
             else { '' }
 
     my Str $plantUML = '';
 
     $plantUML = 'class ' ~ $class.raku ~ ' ' ~ $annot ~ ' {' ~ "\n";
-
-
 
     if $attributes {
         for |%classData<attributes> -> $a {
