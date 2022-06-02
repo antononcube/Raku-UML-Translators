@@ -156,16 +156,12 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
     my Str %umlSpecParts;
 
     if $attributes {
-        %umlSpecParts<attributes> = '';
-        %umlSpecParts<attributes> ~=
-                %classData<attributes>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_ }).join(', ');
+        %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"'}).join(', ') ~ '}';
         %umlSpecParts<attributes> .= subst('""', '"'):g;
     }
 
     if $methods {
-        %umlSpecParts<methods> = '';
-        %umlSpecParts<methods> ~=
-                %classData<methods>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_ }).join(', ');
+        %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"'}).join(', ') ~ '}';
         %umlSpecParts<methods> .= subst('""', '"'):g;
     }
 
