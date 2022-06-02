@@ -246,7 +246,7 @@ multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$att
 
     my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
 
-    my $res = 'UMLClassGraph[' ~
+    my $res = 'UMLClassGraph[' ~ "\n" ~
             'Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             'Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
