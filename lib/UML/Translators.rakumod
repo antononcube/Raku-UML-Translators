@@ -51,7 +51,7 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace --> List) {
 
     my $res =
             do if @childNameSpaces.elems == 0 { @classes }
-            else { flat( @classes, @childNameSpaces.map({ TraverseNameSpace($packageName, $_.raku) }) ) };
+            else { flat(@classes, @childNameSpaces.map({ TraverseNameSpace($packageName, $_.raku) })) };
 
     $res.list
 }
@@ -68,7 +68,11 @@ sub ClassData($class) {
             elsif $class.HOW.^name (elem) $grammarTypes { 'grammar' }
             else { 'class' }
 
-    %( :$type, attributes => $class.^attributes>>.^name, methods => $class.^methods>>.name, parents => $class.^parents, roles => $class.^roles.map( { $_.^name } ))
+    %( :$type,
+       attributes => $class.^attributes>>.^name,
+       methods => $class.^methods>>.name,
+       parents => $class.^parents,
+       roles => $class.^roles.map({ $_.^name }).Array)
 }
 
 
@@ -120,24 +124,70 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
 
     $plantUML = $plantUML ~ "\n";
 
-    $plantUML
+    return $plantUML;
 }
+
+#============================================================
+# ClassDataToWLGraphUML
+#============================================================
+
+#| Generate WL graph UML code from the class/grammar/role data.
+sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$methods = True) {
+
+    my %classData = ClassData($class);
+
+    if Routine ∈ %classData<parents> {
+        $class = $class.name.subst('-', '_'):g;
+        %classData<type> = 'routine';
+    }
+
+    my $annot =
+            do if %classData<type> eq 'role' { '<<role>>' }
+            elsif %classData<type> eq 'grammar' { '<<grammar>>' }
+            elsif %classData<type> eq 'routine' { '<<routine>>' }
+            else { '' }
+
+    my Str %umlSpecParts;
+
+    if $attributes {
+        %umlSpecParts<attributes> = '';
+        %umlSpecParts<attributes> ~=
+                %classData<attributes>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_.^name }).join(', ');
+        %umlSpecParts<attributes> .= subst('""', '"'):g;
+    }
+
+    if $methods {
+        %umlSpecParts<methods> = '';
+        %umlSpecParts<methods> ~=
+                %classData<methods>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_.^name }).join(', ');
+        %umlSpecParts<methods> .= subst('""', '"'):g;
+    }
+
+    %umlSpecParts<parents> ~= [|%classData<parents>, |%classData<roles>].map({ '"' ~ $class.raku ~ '"' ~ ' \[DirectedEdge] ' ~ '"' ~ $_.raku ~ '"' }).join(', ');
+    %umlSpecParts<parents> .= subst('""', '"'):g;
+
+    %umlSpecParts<abstract> ~= %classData<roles>.unique.map({ '"' ~ $_.raku ~ '"' }).join(', ');
+    %umlSpecParts<abstract> .= subst('""', '"'):g;
+
+    return %umlSpecParts;
+}
+
 
 #============================================================
 # to-plant-uml
 #============================================================
 
 #| Get namespace proto
-proto get-namespace-classes( $packageNames ) is export {*}
+proto get-namespace-classes($packageNames) is export {*}
 
 #| Get classes of a single namespace
-multi get-namespace-classes(Str $packageName ) {
-    get-namespace-classes( [$packageName] )
+multi get-namespace-classes(Str $packageName) {
+    get-namespace-classes([$packageName])
 }
 
 #| Get classes of a many namespaces
 multi get-namespace-classes(Positional $packageNames) {
-    flat( $packageNames.map({ TraverseNameSpace($_, $_) }) );
+    flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 }
 
 
@@ -146,23 +196,26 @@ multi get-namespace-classes(Positional $packageNames) {
 #============================================================
 
 #| Translation to PlantUML proto
-proto to-plant-uml( $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*}
+proto to-plant-uml($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                   Bool :$conciseGrammarClasses = True) is export {*}
 
 #| Translation to PlantUML single package name
-multi to-plant-uml(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) {
-    to-plant-uml( [$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses )
+multi to-plant-uml(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                   Bool :$conciseGrammarClasses = True) {
+    to-plant-uml([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
 }
 
 #| Translation to PlantUML multiple package names
-multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) {
+multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                   Bool :$conciseGrammarClasses = True) {
 
-    my @classes = flat( $packageNames.map({ TraverseNameSpace($_, $_) }) );
+    my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
-#        for @classes -> $cl {
-#            say '=' x 30;
-#            say $cl.raku;
-#            say ClassData( $cl );
-#        }
+    #        for @classes -> $cl {
+    #            say '=' x 30;
+    #            say $cl.raku;
+    #            say ClassData( $cl );
+    #        }
 
     my $res = @classes.map({ ClassDataToPlantUML($_, :$attributes, :$methods) }).join("\n");
 
@@ -171,15 +224,47 @@ multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attrib
     $res;
 }
 
+#============================================================
+# to-wl-uml-graph
+#============================================================
+
+#| Translation to WL UML graph proto
+proto to-wl-uml-graph($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True) is export {*}
+
+#| Translation to WL UML graph single package name
+multi to-wl-uml-graph(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True) {
+    to-wl-uml-graph([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
+}
+
+#| Translation to WL UML graph multiple package names
+multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True) {
+
+    my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
+
+    my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
+
+    my $res = 'UMLClassGraph[' ~
+            'Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
+            'Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
+            '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
+            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> 1000, GraphLayout -> "CircularEmbedding"]';
+
+    $res;
+}
 
 #============================================================
 # to-uml
 #============================================================
 
 #| Proto of the main translation function
-proto to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*};
+proto to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True,
+             Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*};
 
 #| Main translation function
-multi to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True, Bool :$methods = True, Bool :$conciseGrammarClasses = True) {
-    to-plant-uml( $packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses )
+multi to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True,
+             Bool :$methods = True, Bool :$conciseGrammarClasses = True) {
+    to-plant-uml($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses)
 }
