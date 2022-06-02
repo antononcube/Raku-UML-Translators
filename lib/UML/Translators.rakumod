@@ -68,9 +68,15 @@ sub ClassData($class) {
             elsif $class.HOW.^name (elem) $grammarTypes { 'grammar' }
             else { 'class' }
 
+    my @methods = do if $type eq 'class' {
+        $class.^method_names;
+    } else {
+        $class.^methods>>.^name
+    }
+
     %( :$type,
        attributes => $class.^attributes>>.^name,
-       methods => $class.^methods>>.name,
+       :@methods,
        parents => $class.^parents,
        roles => $class.^roles.map({ $_.^name }).Array)
 }
@@ -102,13 +108,13 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
 
     if $attributes {
         for |%classData<attributes> -> $a {
-            $plantUML = $plantUML ~ '  {field} ' ~ $a.^name ~ "\n";
+            $plantUML = $plantUML ~ '  {field} ' ~ $a ~ "\n";
         }
     }
 
     if $methods {
         for |%classData<methods> -> $m {
-            $plantUML = $plantUML ~ '  {method} ' ~ $m.raku ~ "\n";
+            $plantUML = $plantUML ~ '  {method} ' ~ $m ~ "\n";
         }
     }
 
@@ -152,14 +158,14 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
     if $attributes {
         %umlSpecParts<attributes> = '';
         %umlSpecParts<attributes> ~=
-                %classData<attributes>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_.^name }).join(', ');
+                %classData<attributes>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_ }).join(', ');
         %umlSpecParts<attributes> .= subst('""', '"'):g;
     }
 
     if $methods {
         %umlSpecParts<methods> = '';
         %umlSpecParts<methods> ~=
-                %classData<methods>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_.^name }).join(', ');
+                %classData<methods>.map({ '"' ~ $class.raku ~ '"' ~ ' -> ' ~ $_ }).join(', ');
         %umlSpecParts<methods> .= subst('""', '"'):g;
     }
 
@@ -247,8 +253,8 @@ multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$att
     my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
 
     my $res = 'UMLClassGraph[' ~ "\n" ~
-            'Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
-            'Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
+            '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
+            '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
             '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> 1000, GraphLayout -> "CircularEmbedding"]';
 
