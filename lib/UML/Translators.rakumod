@@ -71,11 +71,11 @@ sub ClassData($class) {
     my @methods = do if $type eq 'class' {
         $class.^method_names;
     } else {
-        $class.^methods>>.^name
+        $class.^methods>>.name
     }
 
     %( :$type,
-       attributes => $class.^attributes>>.^name,
+       attributes => $class.^attributes,
        :@methods,
        parents => $class.^parents,
        roles => $class.^roles.map({ $_.^name }).Array)
@@ -232,23 +232,23 @@ multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attrib
 
 #| Translation to WL UML graph proto
 proto to-wl-uml-graph($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True) is export {*}
+                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') is export {*}
 
 #| Translation to WL UML graph single package name
 multi to-wl-uml-graph(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True) {
-    to-wl-uml-graph([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
+                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') {
+    to-wl-uml-graph([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$wl-head)
 }
 
 #| Translation to WL UML graph multiple package names
 multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True) {
+                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
     my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
 
-    my $res = 'UMLClassGraph[' ~ "\n" ~
+    my $res = $wl-head ~ '[' ~ "\n" ~
             '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
