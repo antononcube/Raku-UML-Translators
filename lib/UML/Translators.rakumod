@@ -69,13 +69,13 @@ sub ClassData($class) {
             else { 'class' }
 
     my @methods = do if $type eq 'class' {
-        $class.^method_names;
+        $class.^method_names.sort;
     } else {
-        $class.^methods>>.name
+        $class.^methods>>.name.sort
     }
 
     %( :$type,
-       attributes => $class.^attributes,
+       attributes => $class.^attributes.sort,
        :@methods,
        parents => $class.^parents,
        roles => $class.^roles.map({ $_.^name }).Array)
