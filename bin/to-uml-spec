@@ -25,12 +25,12 @@ sub MAIN(Str $packageName,                     #= Package name.
 
     # Call the main function
     my Str $res;
-    if $format.lc ∈ <whatever automatic plantuml plant> {
-        $res = to-plant-uml($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
-    } elsif $format.lc ∈ <wl wlumlgraph mathematica> {
-        $res = to-wl-uml-graph($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+    if $format.lc ∈ <whatever automatic plantuml plant-uml plant> {
+        $res = to-plant-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+    } elsif $format.lc ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
+        $res = to-wl-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
     } else {
-        die "Uknown format $format. The format value is expected to be one of 'PlantUML', 'WL', or 'Whatever'";
+        die "Uknown format $format. The format value is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'";
     }
 
     # Result
