@@ -1,0 +1,20 @@
+use v6.d;
+use Test;
+
+use UML::Translators;
+
+module MyPackageClass {
+    role A { method a1 {} }
+    class B does A { has $.b0; method b1 {} }
+    class C does A is B { has $.c0; method c1 {} }
+}
+
+plan 3;
+
+isa-ok to-plant-uml-spec('MyPackageClass'), Str;
+
+isa-ok to-wl-uml-spec('MyPackageClass'), Str;
+
+isa-ok to-uml-spec('MyPackageClass'), Str;
+
+done-testing;
