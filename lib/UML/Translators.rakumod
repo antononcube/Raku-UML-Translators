@@ -266,20 +266,20 @@ multi to-wl-uml-spec(Positional $packageNames,
                       Bool :$attributes = True,
                       Bool :$methods = True,
                       Bool :$conciseGrammarClasses = True,
-                      Str :$wl-head = 'UMLClassGraph',
-                      :$wl-image-size = 'Large',
-                      Str :$wl-graph-layout = 'CircularEmbedding') {
+                      Str :$function-name = 'UMLClassGraph',
+                      :$image-size = 'Large',
+                      Str :$graph-layout = 'CircularEmbedding') {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
     my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
 
-    my $res = $wl-head ~ '[' ~ "\n" ~
+    my $res = $function-name ~ '[' ~ "\n" ~
             '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~
             "\n" ~
-            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $wl-image-size.Str ~ ', GraphLayout -> "' ~ $wl-graph-layout ~ '"]';
+            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $image-size.Str ~ ', GraphLayout -> "' ~ $graph-layout ~ '"]';
 
     $res;
 }
