@@ -24,8 +24,18 @@ my $nameSpaceTypes = <Perl6::Metamodel::PackageHOW>;
 #| Traverse name-space for other name-spaces and classes/grammars/roles.
 sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace --> List) {
 
-    require ::($packageName);
+    my Bool $no-package = False;
+    try require ::($packageName);
+    if ::($packageName) ~~ Failure {
+        $no-package = True
+    }
+
     my $pkg = ::($nameSpace);
+
+    CATCH {
+        if $no-package { warn "Cannot load package named $packageName."; }
+        warn "Cannot load name space $nameSpace.";
+    }
 
     #say '$pkg::.WHO = ', $pkg::.WHO;
     my $pkg2 = $pkg::.WHO;
@@ -79,7 +89,7 @@ sub ClassData($class) {
        attributes => $class.^attributes.sort,
        :@methods,
        parents => $class.^parents,
-       roles => $class.^roles.map({ $_.^name }).Array)
+       roles => $class.^roles.map({ $_.^name }).unique.Array)
 }
 
 
@@ -123,11 +133,11 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
     $plantUML = $plantUML ~ '}' ~ "\n";
 
     for |%classData<parents> -> $p {
-        $plantUML = $plantUML ~ $class.raku ~ " --|> " ~ $p.raku ~ "\n"
+        $plantUML = $plantUML ~ $class.raku ~ ' --|> ' ~ $p.raku ~ "\n"
     }
 
     for |%classData<roles> -> $r {
-        $plantUML = $plantUML ~ $class.raku ~ " --|> " ~ $r.raku ~ "\n"
+        $plantUML = $plantUML ~ $class.raku ~ ' --|> ' ~ $r ~ "\n"
     }
 
     $plantUML = $plantUML ~ "\n";
@@ -158,12 +168,12 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
     my Str %umlSpecParts;
 
     if $attributes {
-        %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"'}).join(', ') ~ '}';
+        %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
         %umlSpecParts<attributes> .= subst('""', '"'):g;
     }
 
     if $methods {
-        %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"'}).join(', ') ~ '}';
+        %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
         %umlSpecParts<methods> .= subst('""', '"'):g;
     }
 
@@ -178,7 +188,7 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
 
 
 #============================================================
-# to-plant-uml
+# to-plant-uml-spec
 #============================================================
 
 #| Get namespace proto
@@ -196,21 +206,21 @@ multi get-namespace-classes(Positional $packageNames) {
 
 
 #============================================================
-# to-plant-uml
+# to-plant-uml-spec
 #============================================================
 
 #| Translation to PlantUML proto
-proto to-plant-uml($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+proto to-plant-uml-spec($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
                    Bool :$conciseGrammarClasses = True) is export {*}
 
 #| Translation to PlantUML single package name
-multi to-plant-uml(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+multi to-plant-uml-spec(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
                    Bool :$conciseGrammarClasses = True) {
-    to-plant-uml([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
+    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
 }
 
 #| Translation to PlantUML multiple package names
-multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
+multi to-plant-uml-spec(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
                    Bool :$conciseGrammarClasses = True) {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
@@ -229,25 +239,35 @@ multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attrib
 }
 
 #============================================================
-# to-wl-uml-graph
+# to-wl-uml-spec
 #============================================================
 
 #| Translation to WL UML graph proto
-proto to-wl-uml-graph($packageNames, *%args ) is export {*}
+proto to-wl-uml-spec($packageNames,
+                      Str :$type = "class",
+                      Bool :$attributes = True,
+                      Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True,
+                      *%args) is export {*}
 
 #| Translation to WL UML graph single package name
-multi to-wl-uml-graph(Str $packageName, *%args ) {
-    to-wl-uml-graph([$packageName], |%args)
+multi to-wl-uml-spec(Str $packageName,
+                      Str :$type = "class",
+                      Bool :$attributes = True,
+                      Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True,
+                      *%args) {
+    to-wl-uml-spec([$packageName], :$type, :$attributes, :$methods, |%args)
 }
 
 #| Translation to WL UML graph multiple package names
-multi to-wl-uml-graph(Positional $packageNames,
+multi to-wl-uml-spec(Positional $packageNames,
                       Str :$type = "class",
                       Bool :$attributes = True,
                       Bool :$methods = True,
                       Bool :$conciseGrammarClasses = True,
                       Str :$wl-head = 'UMLClassGraph',
-                      :$wl-image-size = '1000',
+                      :$wl-image-size = 'Large',
                       Str :$wl-graph-layout = 'CircularEmbedding') {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
@@ -257,7 +277,8 @@ multi to-wl-uml-graph(Positional $packageNames,
     my $res = $wl-head ~ '[' ~ "\n" ~
             '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
-            '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
+            '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~
+            "\n" ~
             '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $wl-image-size.Str ~ ', GraphLayout -> "' ~ $wl-graph-layout ~ '"]';
 
     $res;
@@ -267,12 +288,28 @@ multi to-wl-uml-graph(Positional $packageNames,
 # to-uml
 #============================================================
 
-#| Proto of the main translation function
-proto to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True,
-             Bool :$methods = True, Bool :$conciseGrammarClasses = True) is export {*};
-
 #| Main translation function
-multi to-uml($packageNames, Str :$format = 'PlantUML', Str :$type = 'class', Bool :$attributes = True,
-             Bool :$methods = True, Bool :$conciseGrammarClasses = True) {
-    to-plant-uml($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses)
+#| $packageNames Package names to find UML spec for.
+#| :$format Format for UML spec, one of 'PlantUML', 'WL-UML-Graph', or Whatever.
+#| :$type UML diagram type. (Only 'class' is currently implemented.)
+#| :$attributes Should the class attributes be included in the UML diagrams or not?
+#| :$methods Should the class methods be included in the UML diagrams or not?
+#| :$conciseGrammarClasses Should concise grammar classes be given in concise form or not?
+sub to-uml-spec ($packageNames,
+                 :$format is copy = Whatever,
+                 Str :$type = 'class',
+                 Bool :$attributes = True,
+                 Bool :$methods = True,
+                 Bool :$conciseGrammarClasses = True,
+                 *%args) is export {
+
+    if $format.isa(Whatever) { $format = 'PlantUML' }
+
+    if $format.lc ∈ <plantuml plant-uml plant> {
+        return to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+    } elsif $format ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
+        return to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args)
+    } else {
+        die "Uknown format $format. The value of the arugment format is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or Whatever.";
+    }
 }
