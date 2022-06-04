@@ -66,6 +66,7 @@ sub ClassData($class) {
     my $type =
             do if $class.HOW.^name (elem) $roleTypes { 'role' }
             elsif $class.HOW.^name (elem) $grammarTypes { 'grammar' }
+            elsif $class.DEFINITE { 'constant' }
             else { 'class' }
 
     my @methods = do if $type eq 'class' {
@@ -100,19 +101,20 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
             do if %classData<type> eq 'role' { '<<role>>' }
             elsif %classData<type> eq 'grammar' { '<<grammar>>' }
             elsif %classData<type> eq 'routine' { '<<routine>>' }
+            elsif %classData<type> eq 'constant' { '<<constant>>' }
             else { '' }
 
     my Str $plantUML = '';
 
     $plantUML = 'class ' ~ $class.raku ~ ' ' ~ $annot ~ ' {' ~ "\n";
 
-    if $attributes {
+    if $attributes and %classData<type> ne 'constant' {
         for |%classData<attributes> -> $a {
             $plantUML = $plantUML ~ '  {field} ' ~ $a ~ "\n";
         }
     }
 
-    if $methods {
+    if $methods and %classData<type> ne 'constant' {
         for |%classData<methods> -> $m {
             $plantUML = $plantUML ~ '  {method} ' ~ $m ~ "\n";
         }
@@ -231,18 +233,22 @@ multi to-plant-uml(Positional $packageNames, Str :$type = "class", Bool :$attrib
 #============================================================
 
 #| Translation to WL UML graph proto
-proto to-wl-uml-graph($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') is export {*}
+proto to-wl-uml-graph($packageNames, *%args ) is export {*}
 
 #| Translation to WL UML graph single package name
-multi to-wl-uml-graph(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') {
-    to-wl-uml-graph([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$wl-head)
+multi to-wl-uml-graph(Str $packageName, *%args ) {
+    to-wl-uml-graph([$packageName], |%args)
 }
 
 #| Translation to WL UML graph multiple package names
-multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True, Str :$wl-head = 'UMLClassGraph') {
+multi to-wl-uml-graph(Positional $packageNames,
+                      Str :$type = "class",
+                      Bool :$attributes = True,
+                      Bool :$methods = True,
+                      Bool :$conciseGrammarClasses = True,
+                      Str :$wl-head = 'UMLClassGraph',
+                      :$wl-image-size = '1000',
+                      Str :$wl-graph-layout = 'CircularEmbedding') {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
@@ -252,7 +258,7 @@ multi to-wl-uml-graph(Positional $packageNames, Str :$type = "class", Bool :$att
             '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~ "\n" ~
-            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> 1000, GraphLayout -> "CircularEmbedding"]';
+            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $wl-image-size.Str ~ ', GraphLayout -> "' ~ $wl-graph-layout ~ '"]';
 
     $res;
 }
