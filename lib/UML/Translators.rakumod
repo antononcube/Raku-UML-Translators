@@ -79,20 +79,25 @@ sub ClassData($class) {
             elsif $class.DEFINITE { 'constant' }
             else { 'class' }
 
-    my @methods = do if $type eq 'class' {
+    my @methods = do if $type ∈ <class grammar> {
         $class.^method_names.sort;
     } else {
         $class.^methods>>.name.sort
     }
 
     if $type eq 'grammar' {
-        %( :$type, :@methods, parents => $class.^parents, attributes => (), roles => () )
+        # I am not
+        %( :$type,
+           :@methods,
+           parents => $class.^parents,
+           attributes => $class.^attributes.map(*.^name).unique.sort.Array,
+           roles => $class.^roles.map({ $_.^name }).unique.sort.Array)
     } else {
         %( :$type,
            attributes => $class.^attributes.sort,
            :@methods,
            parents => $class.^parents,
-           roles => $class.^roles.map({ $_.^name }).unique.Array)
+           roles => $class.^roles.map({ $_.^name }).unique.sort.Array)
     }
 }
 
