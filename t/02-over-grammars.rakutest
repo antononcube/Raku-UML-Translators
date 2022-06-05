@@ -1,0 +1,49 @@
+use v6.d;
+use Test;
+
+use UML::Translators;
+
+module MyPackageClass {
+    role A { regex a { \d* }}
+    role B { regex b { \w* }}
+    grammar C does A does B {
+        has $.c0;
+        regex TOP { <a> | <b> }
+    }
+}
+
+plan 4;
+
+# 1
+isa-ok to-plant-uml-spec('MyPackageClass'), Str, 'to-plant-uml-spec call';;
+
+# 2
+isa-ok to-wl-uml-spec('MyPackageClass'), Str, 'to-wl-uml-spec call';;
+
+# 3
+isa-ok to-uml-spec('MyPackageClass'), Str, 'to-uml-spec call';
+
+# 4
+my $spec4 = to-plant-uml-spec('MyPackageClass').subst(:g, / \h+ /, '');
+
+my @parentRules = (
+'MyPackageClass::C --|> MyPackageClass::B',
+'MyPackageClass::C --|> MyPackageClass::A'
+);
+
+my $res4 = [&&] @parentRules.map({ $spec4.contains($_.subst(:g, / \h+ /, '')) }).List;
+
+is $res4, True, 'Expected role relationships';
+
+# 5
+my @methodLines = (
+'{method} a',
+'{method} b',
+'{method} c0'
+);
+
+my $res5 = [&&] @methodLines.map({ $spec4.contains($_.subst(:g, / \h+ /, '')) }).List;
+
+is $res5, True, 'Expected methods';
+
+done-testing;
