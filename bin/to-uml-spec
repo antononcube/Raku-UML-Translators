@@ -11,7 +11,7 @@ sub MAIN(Str $packageName,                     #= Package name.
          Bool :$attributes = True,             #= Should the class attributes be included in the UML diagrams or not?
          Bool :$methods = True,                #= Should the class methods be included in the UML diagrams or not?
          Bool :$conciseGrammarClasses = True,  #= Should grammar classes be shortened or not?
-         Str :$format = 'PlantUML'             #= Format of the output, one of 'PlantUML', 'WL', or 'Whatever'.
+         Str :$format = 'PlantUML'             #= Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'.
          ) {
 
     # If there is a library argument
