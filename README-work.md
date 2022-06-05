@@ -89,7 +89,6 @@ module MyPackageClass {
 to-uml-spec('MyPackageClass')
 ```
 
-
 ### UML for packages
 
 Get PlantUML code for the package
@@ -99,6 +98,12 @@ Get PlantUML code for the package
 say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
 
+Get WL UML graph spec for the package [AAp1]:
+
+```perl6
+say to-uml-spec('Chemistry::Stoichiometry', format => 'wluml')
+```
+
 ### Classes in a name space
 
 Get the classes of a name space:
@@ -106,7 +111,6 @@ Get the classes of a name space:
 ```perl6
 .say for get-namespace-classes( 'ML::TriesWithFrequencies' ).map({ $_ ~~ Str ?? $_ !! $_.^name }).sort
 ```
-
 
 ------ 
 
