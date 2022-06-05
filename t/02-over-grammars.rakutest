@@ -12,7 +12,7 @@ module MyPackageClass {
     }
 }
 
-plan 4;
+plan 5;
 
 # 1
 isa-ok to-plant-uml-spec('MyPackageClass'), Str, 'to-plant-uml-spec call';;
