@@ -88,32 +88,6 @@ module MyPackageClass {
 }
 to-uml-spec('MyPackageClass')
 ```
-```
-# @startuml
-# class MyPackageClass::A <<role>> {
-#   {method} a1
-# }
-# 
-# class MyPackageClass::C  {
-#   {field} $!b0
-#   {field} $!c0
-#   {method} BUILDALL
-#   {method} a1
-#   {method} c1
-# }
-# MyPackageClass::C --|> MyPackageClass::B
-# MyPackageClass::C --|> MyPackageClass::A
-# 
-# class MyPackageClass::B  {
-#   {field} $!b0
-#   {method} BUILDALL
-#   {method} a1
-#   {method} b1
-# }
-# MyPackageClass::B --|> MyPackageClass::A
-# 
-# @enduml
-```
 
 
 ### UML for packages
@@ -124,35 +98,6 @@ Get PlantUML code for the package
 ```perl6
 say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
-```
-# @startuml
-# class Chemistry::Stoichiometry::ResourceAccess  {
-# }
-# 
-# class Chemistry::Stoichiometry::Grammar <<grammar>> {
-# }
-# Chemistry::Stoichiometry::Grammar --|> Grammar
-# Chemistry::Stoichiometry::Grammar --|> Match
-# Chemistry::Stoichiometry::Grammar --|> Capture
-# Chemistry::Stoichiometry::Grammar --|> Chemistry::Stoichiometry::Grammar::ChemicalElement
-# Chemistry::Stoichiometry::Grammar --|> Chemistry::Stoichiometry::Grammar::ChemicalEquation
-# Chemistry::Stoichiometry::Grammar --|> NQPMatchRole
-# 
-# class Chemistry::Stoichiometry::Actions::EquationBalance  {
-# }
-# Chemistry::Stoichiometry::Actions::EquationBalance --|> Chemistry::Stoichiometry::Actions::EquationMatrix
-# 
-# class Chemistry::Stoichiometry::Actions::MolecularMass  {
-# }
-# 
-# class Chemistry::Stoichiometry::Actions::EquationMatrix  {
-# }
-# 
-# class Chemistry::Stoichiometry::Actions::WL::System  {
-# }
-# 
-# @enduml
-```
 
 ### Classes in a name space
 
@@ -160,18 +105,6 @@ Get the classes of a name space:
 
 ```perl6
 .say for get-namespace-classes( 'ML::TriesWithFrequencies' ).map({ $_ ~~ Str ?? $_ !! $_.^name }).sort
-```
-```
-# ML::TriesWithFrequencies::LeafProbabilitiesGatherer
-# ML::TriesWithFrequencies::ParetoBasedRemover
-# ML::TriesWithFrequencies::PathsGatherer
-# ML::TriesWithFrequencies::RegexBasedRemover
-# ML::TriesWithFrequencies::ThresholdBasedRemover
-# ML::TriesWithFrequencies::Trie
-# ML::TriesWithFrequencies::TrieTraverse
-# ML::TriesWithFrequencies::Trieish
-# TRIEROOT
-# TRIEVALUE
 ```
 
 
