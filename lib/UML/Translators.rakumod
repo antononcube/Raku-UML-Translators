@@ -85,11 +85,15 @@ sub ClassData($class) {
         $class.^methods>>.name.sort
     }
 
-    %( :$type,
-       attributes => $class.^attributes.sort,
-       :@methods,
-       parents => $class.^parents,
-       roles => $class.^roles.map({ $_.^name }).unique.Array)
+    if $type eq 'grammar' {
+        %( :$type, :@methods, parents => $class.^parents, attributes => (), roles => () )
+    } else {
+        %( :$type,
+           attributes => $class.^attributes.sort,
+           :@methods,
+           parents => $class.^parents,
+           roles => $class.^roles.map({ $_.^name }).unique.Array)
+    }
 }
 
 
