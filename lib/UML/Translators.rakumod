@@ -118,13 +118,13 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
 
     $plantUML = 'class ' ~ $class.raku ~ ' ' ~ $annot ~ ' {' ~ "\n";
 
-    if $attributes and %classData<type> ne 'constant' {
+    if $attributes and %classData<type> ∉ <constant routine> {
         for |%classData<attributes> -> $a {
             $plantUML = $plantUML ~ '  {field} ' ~ $a ~ "\n";
         }
     }
 
-    if $methods and %classData<type> ne 'constant' {
+    if $methods and %classData<type> ∉ <constant routine> {
         for |%classData<methods> -> $m {
             $plantUML = $plantUML ~ '  {method} ' ~ $m ~ "\n";
         }
@@ -163,16 +163,17 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
             do if %classData<type> eq 'role' { '<<role>>' }
             elsif %classData<type> eq 'grammar' { '<<grammar>>' }
             elsif %classData<type> eq 'routine' { '<<routine>>' }
+            elsif %classData<type> eq 'constant' { '<<constant>>' }
             else { '' }
 
     my Str %umlSpecParts;
 
-    if $attributes {
+    if $attributes and %classData<type> ∉ <constant routine> {
         %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
         %umlSpecParts<attributes> .= subst('""', '"'):g;
     }
 
-    if $methods {
+    if $methods and %classData<type> ∉ <constant routine> {
         %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
         %umlSpecParts<methods> .= subst('""', '"'):g;
     }
@@ -295,13 +296,13 @@ multi to-wl-uml-spec(Positional $packageNames,
 #| :$attributes Should the class attributes be included in the UML diagrams or not?
 #| :$methods Should the class methods be included in the UML diagrams or not?
 #| :$conciseGrammarClasses Should concise grammar classes be given in concise form or not?
-sub to-uml-spec ($packageNames,
-                 :$format is copy = Whatever,
-                 Str :$type = 'class',
-                 Bool :$attributes = True,
-                 Bool :$methods = True,
-                 Bool :$conciseGrammarClasses = True,
-                 *%args) is export {
+sub to-uml-spec($packageNames,
+                :$format is copy = Whatever,
+                Str :$type = 'class',
+                Bool :$attributes = True,
+                Bool :$methods = True,
+                Bool :$conciseGrammarClasses = True,
+                *%args) is export {
 
     if $format.isa(Whatever) { $format = 'PlantUML' }
 
