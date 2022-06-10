@@ -14,7 +14,7 @@ my $grammarTypes = <Perl6::Metamodel::GrammarHOW>;
 my $roleTypes = <Perl6::Metamodel::CurriedRoleHOW Perl6::Metamodel::ConcreteRoleHOW Perl6::Metamodel::RolePunning Perl6::Metamodel::RoleContainer Perl6::Metamodel::ParametricRoleGroupHOW>;
 
 #| Meta types for packages / name-spaces
-my $nameSpaceTypes = <Perl6::Metamodel::PackageHOW>;
+my $nameSpaceTypes = <Perl6::Metamodel::PackageHOW Perl6::Metamodel::GrammarHOW>;
 
 
 #============================================================
@@ -37,6 +37,7 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace --> List) {
         warn "Cannot load name space $nameSpace.";
     }
 
+    #say '-:' x 60;
     #say '$pkg::.WHO = ', $pkg::.WHO;
     my $pkg2 = $pkg::.WHO;
 
@@ -62,6 +63,8 @@ sub TraverseNameSpace(Str:D $packageName, Str:D $nameSpace --> List) {
     my $res =
             do if @childNameSpaces.elems == 0 { @classes }
             else { flat(@classes, @childNameSpaces.map({ TraverseNameSpace($packageName, $_.raku) })) };
+
+    #say '-' x 120;
 
     $res.list
 }
