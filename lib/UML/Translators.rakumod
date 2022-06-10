@@ -326,15 +326,22 @@ sub to-uml-spec($packageNames,
                 Bool :$attributes = True,
                 Bool :$methods = True,
                 Bool :$conciseGrammarClasses = True,
+                Bool :$compact = False,
                 *%args) is export {
 
     if $format.isa(Whatever) { $format = 'PlantUML' }
 
+    my $res;
     if $format.lc ∈ <plantuml plant-uml plant> {
-        return to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+        $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
     } elsif $format ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
-        return to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args)
+        $res = to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args)
     } else {
         die "Uknown format $format. The value of the arugment format is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or Whatever.";
     }
+
+    if $compact {
+        $res = $res.subst(:g, / \v+ /, "\n").subst(:g, / '{' \v+ '}' /, '{}');
+    }
+    return $res;
 }
