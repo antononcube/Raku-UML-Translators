@@ -201,17 +201,29 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
 # to-plant-uml-spec
 #============================================================
 
-#| Get namespace proto
-proto get-namespace-classes($packageNames) is export {*}
+#| Get classes and roles of a namespace or a list of namespaces.
+proto get-namespace-classes($packageNames, Bool :$how-pairs = False) is export {*}
 
 #| Get classes of a single namespace
-multi get-namespace-classes(Str $packageName) {
-    get-namespace-classes([$packageName])
+multi get-namespace-classes(Str $packageName, Bool :$how-pairs) {
+    get-namespace-classes([$packageName], :$how-pairs)
 }
 
 #| Get classes of a many namespaces
-multi get-namespace-classes(Positional $packageNames) {
-    flat($packageNames.map({ TraverseNameSpace($_, $_) }));
+multi get-namespace-classes(Positional $packageNames, Bool :$how-pairs) {
+    my $res = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
+    if $how-pairs {
+        return $res.map({
+            given $_ {
+                when Str { $_ => $_.^name }
+                when Numeric { $_.Str => $_.^name }
+                when Sub { $_.name => $_.^name }
+                when Callable { $_.name => $_.^name }
+                default { $_.^name => $_.HOW.^name }
+            }
+        });
+    }
+    return $res;
 }
 
 
