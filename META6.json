@@ -1,7 +1,7 @@
 {
   "name": "UML::Translators",
   "description": "A package for translating code to UML specifications and UML specifications to code.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "perl": "6.d",
   "authors": [
     "Anton Antonov"
