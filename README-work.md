@@ -101,15 +101,15 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 Get WL UML graph spec for the package [AAp1]:
 
 ```perl6
-say to-uml-spec('Chemistry::Stoichiometry', format => 'wluml')
+say to-uml-spec('Chemistry::Stoichiometry', format => 'wluml'):!methods:!attributes
 ```
 
 ### Classes in a name space
 
-Get the classes of a name space:
+Get the classes, roles, subs, and constants of a namespace:
 
 ```perl6
-.say for get-namespace-classes( 'ML::TriesWithFrequencies' ).map({ $_ ~~ Str ?? $_ !! $_.^name }).sort
+.say for namespace-types('ML::TriesWithFrequencies', :how-pairs).sort(*.key)
 ```
 
 ------ 
