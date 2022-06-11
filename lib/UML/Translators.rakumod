@@ -293,19 +293,33 @@ multi to-wl-uml-spec(Positional $packageNames,
                       Bool :$conciseGrammarClasses = True,
                       Str :$function-name = 'UMLClassGraph',
                       :$image-size = 'Large',
-                      Str :$graph-layout = 'CircularEmbedding') {
+                      :$graph-layout is copy = Whatever) {
 
+    # Process graph-layout
+    if $graph-layout.isa(Whatever) { $graph-layout = 'Automatic'; }
+
+    if not $graph-layout ~~ Str {
+        die "The value of the argument graph-layout is expected to be a string or Whatever.";
+    }
+
+    if ! ( $graph-layout eq 'Automatic' || (so $graph-layout ~~ rx/ ^^ [ \"  .*  \" | '{' .* '}' ] $$ /) ) {
+        $graph-layout =  '"' ~ $graph-layout ~ '"';
+    }
+
+    # Get dependencies
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
     my @res = @classes.map({ ClassDataToWLGraphUML($_, :$attributes, :$methods) });
 
+    # UML for WL
     my $res = $function-name ~ '[' ~ "\n" ~
             '"Parents" -> Flatten[{' ~ @res.map({ $_<parents> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~
             "\n" ~
-            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $image-size.Str ~ ', GraphLayout -> "' ~ $graph-layout ~ '"]';
+            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $image-size.Str ~ ', GraphLayout -> ' ~ $graph-layout ~ ']';
 
+    # Result
     $res;
 }
 
