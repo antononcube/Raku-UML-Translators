@@ -89,7 +89,6 @@ sub ClassData($class) {
     }
 
     if $type eq 'grammar' {
-        # I am not
         %( :$type,
            :@methods,
            parents => $class.^parents,
@@ -115,7 +114,8 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
     my %classData = ClassData($class);
 
     if Routine ∈ %classData<parents> {
-        $class = $class.name.subst('-', '_'):g;
+        #$class = $class.name.subst('-', '_'):g;
+        $class = $class.name;
         %classData<type> = 'routine';
     }
 
@@ -145,11 +145,15 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
     $plantUML = $plantUML ~ '}' ~ "\n";
 
     for |%classData<parents> -> $p {
+        # This is needed in order to get PlantUML work with, say, "Trie[Int]"
+        #my $new-parent = $p.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $p.raku ~ '"' !! $p.raku;
         $plantUML = $plantUML ~ $class.raku ~ ' --|> ' ~ $p.raku ~ "\n"
     }
 
     for |%classData<roles> -> $r {
-        $plantUML = $plantUML ~ $class.raku ~ ' --|> ' ~ $r ~ "\n"
+        # This is needed in order to get PlantUML work with, say, "Callable[Positional]"
+        my $new-role = $r.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $r ~ '"' !! $r;
+        $plantUML = $plantUML ~ $class.raku ~ ' --|> ' ~ $new-role ~ "\n"
     }
 
     $plantUML = $plantUML ~ "\n";
