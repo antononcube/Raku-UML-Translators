@@ -231,9 +231,9 @@ multi namespace-types(Positional $packageNames, Bool :$how-pairs) {
                 when Callable { $_.name => $_.^name }
                 default { $_.^name => $_.HOW.^name }
             }
-        });
+        }).List;
     }
-    return $res;
+    return $res.List;
 }
 
 
@@ -248,7 +248,7 @@ proto to-plant-uml-spec($packageNames,
                         Bool :$methods = True,
                         Bool :$conciseGrammarClasses = True,
                         Bool :$remove-unlinked = False,
-                        :$removed = ()) is export {*}
+                        :$remove = ()) is export {*}
 
 #| Translation to PlantUML single package name
 multi to-plant-uml-spec(Str $packageName,
@@ -257,8 +257,8 @@ multi to-plant-uml-spec(Str $packageName,
                         Bool :$methods = True,
                         Bool :$conciseGrammarClasses = True,
                         Bool :$remove-unlinked = False,
-                        :$removed = ()) {
-    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$remove-unlinked, :$removed)
+                        :$remove = ()) {
+    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$remove-unlinked, :$remove)
 }
 
 #| Translation to PlantUML multiple package names
@@ -268,7 +268,7 @@ multi to-plant-uml-spec(Positional $packageNames,
                         Bool :$methods = True,
                         Bool :$conciseGrammarClasses = True,
                         Bool :$remove-unlinked = False,
-                        :$removed is copy = ()) {
+                        :$remove is copy = ()) {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
@@ -286,8 +286,8 @@ multi to-plant-uml-spec(Positional $packageNames,
         $res ~= "\nremove @unlinked"
     }
 
-    if ! $removed ~~ Positional { $removed = [$removed, ] }
-    for [|$removed] -> $h {
+    if ! $remove ~~ Positional { $remove = [$remove, ] }
+    for [|$remove] -> $h {
         $res ~= "\nremove " ~ $h.Str
     }
 
