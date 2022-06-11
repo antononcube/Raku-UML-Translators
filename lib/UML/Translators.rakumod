@@ -185,16 +185,19 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
     my Str %umlSpecParts;
 
     if $attributes and %classData<type> ∉ <constant routine> {
-        %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
+        %umlSpecParts<attributes> = '"' ~ $class.raku ~ '" -> {' ~ %classData<attributes>.map({ '"' ~ $_ ~ '"' })
+                .join(', ') ~ '}';
         %umlSpecParts<attributes> .= subst('""', '"'):g;
     }
 
     if $methods and %classData<type> ∉ <constant routine> {
-        %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"' }).join(', ') ~ '}';
+        %umlSpecParts<methods> = '"' ~ $class.raku ~ '" -> {' ~ %classData<methods>.map({ '"' ~ $_ ~ '"' })
+                .join(', ') ~ '}';
         %umlSpecParts<methods> .= subst('""', '"'):g;
     }
 
-    %umlSpecParts<parents> ~= [|%classData<parents>, |%classData<roles>].map({ '"' ~ $class.raku ~ '"' ~ ' \[DirectedEdge] ' ~ '"' ~ $_.raku ~ '"' }).join(', ');
+    %umlSpecParts<parents> ~= [|%classData<parents>, |%classData<roles>].map({ '"' ~ $class
+            .raku ~ '"' ~ ' \[DirectedEdge] ' ~ '"' ~ $_.raku ~ '"' }).join(', ');
     %umlSpecParts<parents> .= subst('""', '"'):g;
 
     %umlSpecParts<abstract> ~= %classData<roles>.unique.map({ '"' ~ $_.raku ~ '"' }).join(', ');
@@ -239,18 +242,33 @@ multi namespace-types(Positional $packageNames, Bool :$how-pairs) {
 #============================================================
 
 #| Translation to PlantUML proto
-proto to-plant-uml-spec($packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                   Bool :$conciseGrammarClasses = True) is export {*}
+proto to-plant-uml-spec($packageNames,
+                        Str :$type = "class",
+                        Bool :$attributes = True,
+                        Bool :$methods = True,
+                        Bool :$conciseGrammarClasses = True,
+                        Bool :$remove-unlinked = False,
+                        :$removed = ()) is export {*}
 
 #| Translation to PlantUML single package name
-multi to-plant-uml-spec(Str $packageName, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                   Bool :$conciseGrammarClasses = True) {
-    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses)
+multi to-plant-uml-spec(Str $packageName,
+                        Str :$type = "class",
+                        Bool :$attributes = True,
+                        Bool :$methods = True,
+                        Bool :$conciseGrammarClasses = True,
+                        Bool :$remove-unlinked = False,
+                        :$removed = ()) {
+    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$remove-unlinked, :$removed)
 }
 
 #| Translation to PlantUML multiple package names
-multi to-plant-uml-spec(Positional $packageNames, Str :$type = "class", Bool :$attributes = True, Bool :$methods = True,
-                   Bool :$conciseGrammarClasses = True) {
+multi to-plant-uml-spec(Positional $packageNames,
+                        Str :$type = "class",
+                        Bool :$attributes = True,
+                        Bool :$methods = True,
+                        Bool :$conciseGrammarClasses = True,
+                        Bool :$remove-unlinked = False,
+                        :$removed is copy = ()) {
 
     my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
 
@@ -262,7 +280,18 @@ multi to-plant-uml-spec(Positional $packageNames, Str :$type = "class", Bool :$a
 
     my $res = @classes.map({ ClassDataToPlantUML($_, :$attributes, :$methods) }).join("\n");
 
-    $res = "@startuml\n" ~ $res ~ "\n@enduml";
+    $res = "@startuml\n" ~ $res;
+
+    if $remove-unlinked {
+        $res ~= "\nremove @unlinked"
+    }
+
+    if ! $removed ~~ Positional { $removed = [$removed, ] }
+    for [|$removed] -> $h {
+        $res ~= "\nremove " ~ $h.Str
+    }
+
+    $res ~= "\n@enduml";
 
     $res;
 }
@@ -273,31 +302,31 @@ multi to-plant-uml-spec(Positional $packageNames, Str :$type = "class", Bool :$a
 
 #| Translation to WL UML graph proto
 proto to-wl-uml-spec($packageNames,
-                      Str :$type = "class",
-                      Bool :$attributes = True,
-                      Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True,
-                      *%args) is export {*}
+                     Str :$type = "class",
+                     Bool :$attributes = True,
+                     Bool :$methods = True,
+                     Bool :$conciseGrammarClasses = True,
+                     *%args) is export {*}
 
 #| Translation to WL UML graph single package name
 multi to-wl-uml-spec(Str $packageName,
-                      Str :$type = "class",
-                      Bool :$attributes = True,
-                      Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True,
-                      *%args) {
+                     Str :$type = "class",
+                     Bool :$attributes = True,
+                     Bool :$methods = True,
+                     Bool :$conciseGrammarClasses = True,
+                     *%args) {
     to-wl-uml-spec([$packageName], :$type, :$attributes, :$methods, |%args)
 }
 
 #| Translation to WL UML graph multiple package names
 multi to-wl-uml-spec(Positional $packageNames,
-                      Str :$type = "class",
-                      Bool :$attributes = True,
-                      Bool :$methods = True,
-                      Bool :$conciseGrammarClasses = True,
-                      Str :$function-name = 'UMLClassGraph',
-                      :$image-size = 'Large',
-                      :$graph-layout is copy = Whatever) {
+                     Str :$type = "class",
+                     Bool :$attributes = True,
+                     Bool :$methods = True,
+                     Bool :$conciseGrammarClasses = True,
+                     Str :$function-name = 'UMLClassGraph',
+                     :$image-size = 'Large',
+                     :$graph-layout is copy = Whatever) {
 
     # Process graph-layout
     if $graph-layout.isa(Whatever) { $graph-layout = 'Automatic'; }
@@ -306,8 +335,8 @@ multi to-wl-uml-spec(Positional $packageNames,
         die "The value of the argument graph-layout is expected to be a string or Whatever.";
     }
 
-    if ! ( $graph-layout eq 'Automatic' || (so $graph-layout ~~ rx/ ^^ [ \"  .*  \" | '{' .* '}' ] $$ /) ) {
-        $graph-layout =  '"' ~ $graph-layout ~ '"';
+    if !($graph-layout eq 'Automatic' || (so $graph-layout ~~ rx/ ^^ [\"  .*  \" | '{' .* '}'] $$ /)) {
+        $graph-layout = '"' ~ $graph-layout ~ '"';
     }
 
     # Get dependencies
@@ -321,7 +350,8 @@ multi to-wl-uml-spec(Positional $packageNames,
             '"RegularMethods" -> Flatten[{' ~ @res.map({ $_<methods> }).grep({ $_ }).join(', ') ~ '}],' ~ "\n" ~
             '"Abstract" -> ' ~ 'Flatten[{' ~ @res.map({ $_<abstract> }).grep({ $_ }).Array.unique.join(', ') ~ '}],' ~
             "\n" ~
-            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $image-size.Str ~ ', GraphLayout -> ' ~ $graph-layout ~ ']';
+            '"EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> ' ~ $image-size.Str ~
+            ', GraphLayout -> ' ~ $graph-layout ~ ']';
 
     # Result
     $res;
@@ -351,7 +381,7 @@ sub to-uml-spec($packageNames,
 
     my $res;
     if $format.lc ∈ <plantuml plant-uml plant> {
-        $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+        $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args);
     } elsif $format ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
         $res = to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args)
     } else {
