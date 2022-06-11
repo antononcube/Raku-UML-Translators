@@ -5,11 +5,12 @@ use UML::Translators;
 
 module MyPackageClass {
     role A { method a1 {} }
-    class B does A { has $.b0; method b1 {} }
-    class C does A is B { has $.c0; method c1 {} }
+    role B { method b1 {} }
+    class C does A { has $!c-var; method c1 {} }
+    class D does B is C { has $!d-var; method d1 {} }
 }
 
-plan 4;
+plan 7;
 
 # 1
 isa-ok to-plant-uml-spec('MyPackageClass'), Str, 'to-plant-uml-spec call';;
@@ -24,13 +25,29 @@ isa-ok to-uml-spec('MyPackageClass'), Str, 'to-uml-spec call';
 my $spec4 = to-plant-uml-spec('MyPackageClass').subst(:g, / \h+ /, '');
 
 my @parentRules = (
-'MyPackageClass::C --|> MyPackageClass::B',
 'MyPackageClass::C --|> MyPackageClass::A',
-'MyPackageClass::B --|> MyPackageClass::A'
+'MyPackageClass::D --|> MyPackageClass::C',
+'MyPackageClass::D --|> MyPackageClass::A',
+'MyPackageClass::D --|> MyPackageClass::B'
 );
 
 my $res4 = [&&] @parentRules.map({ $spec4.contains($_.subst(:g, / \h+ /, '')) }).List;
 
 is $res4, True, 'Expected relationships';
+
+# 5
+isa-ok to-uml-spec('MyPackageClass'):remove-unlinked,
+        Str,
+        'to-uml-spec call with :remove-unlinked';
+
+# 6
+isa-ok to-uml-spec('MyPackageClass', remove=><D>),
+        Str,
+        'to-uml-spec call with remove=><D>';
+
+# 7
+is to-uml-spec('MyPackageClass', remove=><D>).contains('remove D'),
+        True,
+        'to-uml-spec call with remove=><D> has "remove D"';
 
 done-testing;
