@@ -83,36 +83,43 @@ to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Do
 use UML::Translators;
 module MyPackageClass {
   role A { method a1 {} }
-  class B does A { has $!b0; method b1 {} }
-  class C does A is B { has $!c0; method c1 {} }
+  role B { method b1 {} }
+  class C does A { has $!c-var; method c1 {} }
+  class D does B is C { has $!d-var; method d1 {} }
 }
 to-uml-spec('MyPackageClass')
 ```
 ```
 # @startuml
-# class MyPackageClass::A <<role>> {
-#   {method} a1
+# class MyPackageClass::B <<role>> {
+#   {method} b1
 # }
 # 
 # 
 # class MyPackageClass::C  {
-#   {field} $!b0
-#   {field} $!c0
+#   {field} $!c-var
 #   {method} BUILDALL
 #   {method} a1
 #   {method} c1
 # }
-# MyPackageClass::C --|> MyPackageClass::B
 # MyPackageClass::C --|> MyPackageClass::A
 # 
 # 
-# class MyPackageClass::B  {
-#   {field} $!b0
+# class MyPackageClass::D  {
+#   {field} $!c-var
+#   {field} $!d-var
 #   {method} BUILDALL
-#   {method} a1
 #   {method} b1
+#   {method} d1
 # }
-# MyPackageClass::B --|> MyPackageClass::A
+# MyPackageClass::D --|> MyPackageClass::C
+# MyPackageClass::D --|> MyPackageClass::A
+# MyPackageClass::D --|> MyPackageClass::B
+# 
+# 
+# class MyPackageClass::A <<role>> {
+#   {method} a1
+# }
 # 
 # 
 # @enduml
@@ -128,10 +135,6 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
 ```
 # @startuml
-# class Chemistry::Stoichiometry::ResourceAccess  {
-# }
-# 
-# 
 # class Chemistry::Stoichiometry::Grammar <<grammar>> {
 # }
 # Chemistry::Stoichiometry::Grammar --|> Grammar
@@ -142,17 +145,29 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # Chemistry::Stoichiometry::Grammar --|> NQPMatchRole
 # 
 # 
+# class Chemistry::Stoichiometry::ResourceAccess  {
+# }
+# 
+# 
+# class Chemistry::Stoichiometry::Grammar::ChemicalEquation <<role>> {
+# }
+# 
+# 
+# class Chemistry::Stoichiometry::Grammar::ChemicalElement <<role>> {
+# }
+# 
+# 
 # class Chemistry::Stoichiometry::Actions::EquationMatrix  {
+# }
+# 
+# 
+# class Chemistry::Stoichiometry::Actions::MolecularMass  {
 # }
 # 
 # 
 # class Chemistry::Stoichiometry::Actions::EquationBalance  {
 # }
 # Chemistry::Stoichiometry::Actions::EquationBalance --|> Chemistry::Stoichiometry::Actions::EquationMatrix
-# 
-# 
-# class Chemistry::Stoichiometry::Actions::MolecularMass  {
-# }
 # 
 # 
 # class Chemistry::Stoichiometry::Actions::WL::System  {
@@ -172,7 +187,7 @@ say to-uml-spec('Chemistry::Stoichiometry', format => 'wluml'):!methods:!attribu
 # "Parents" -> Flatten[{"Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "Grammar", "Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "Match", "Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "Capture", "Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "Chemistry::Stoichiometry::Grammar::ChemicalElement", "Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "Chemistry::Stoichiometry::Grammar::ChemicalEquation", "Chemistry::Stoichiometry::Grammar" \[DirectedEdge] "NQPMatchRole", "Chemistry::Stoichiometry::Actions::EquationBalance" \[DirectedEdge] "Chemistry::Stoichiometry::Actions::EquationMatrix"}],
 # "RegularMethods" -> Flatten[{}],
 # "Abstract" -> Flatten[{"Chemistry::Stoichiometry::Grammar::ChemicalElement", "Chemistry::Stoichiometry::Grammar::ChemicalEquation", "NQPMatchRole"}],
-# "EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> Large, GraphLayout -> "CircularEmbedding"]
+# "EntityColumn" -> False, VertexLabelStyle -> "Text", ImageSize -> Large, GraphLayout -> Automatic]
 ```
 
 ### Classes in a name space

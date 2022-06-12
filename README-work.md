@@ -83,8 +83,9 @@ to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Do
 use UML::Translators;
 module MyPackageClass {
   role A { method a1 {} }
-  class B does A { has $!b0; method b1 {} }
-  class C does A is B { has $!c0; method c1 {} }
+  role B { method b1 {} }
+  class C does A { has $!c-var; method c1 {} }
+  class D does B is C { has $!d-var; method d1 {} }
 }
 to-uml-spec('MyPackageClass')
 ```
