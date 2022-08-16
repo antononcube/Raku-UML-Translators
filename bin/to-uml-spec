@@ -11,13 +11,17 @@ sub MAIN(Str $packageName,                     #= Package name.
          Bool :$attributes = True,             #= Should the class attributes be included in the UML diagrams or not?
          Bool :$methods = True,                #= Should the class methods be included in the UML diagrams or not?
          Bool :$conciseGrammarClasses = True,  #= Should grammar classes be shortened or not?
-         Str :$format = 'PlantUML'             #= Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'.
+         Str :$format is copy = 'PlantUML',    #= Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'.
+         Bool :$plot = False,                  #= Should the result be plotted or not?
+         Str :$jar is copy = '',               #= JAR file to use if --plot. If --jar is an empty string then PLANTUMLJAR and PLANTUML_JAR are attempted.
+         Str :$viewer is copy = ''             #= Image viewer program to use if --plot. If --viewer is an empty string then open is used on macOS and xdg-open on Linux.
          ) {
 
     # If there is a library argument
     if $path.chars > 0 {
         given $path {
-            when $_.IO.d { CompUnit::RepositoryRegistry.use-repository(CompUnit::Repository::FileSystem.new(prefix => $path)) }
+            when $_.IO.d { CompUnit::RepositoryRegistry.use-repository(CompUnit::Repository::FileSystem
+                    .new(prefix => $path)) }
             when $_.IO.f { note "$path if file not a directory." }
             when !$_.IO.e { note "Unknown directory '$path'." }
         }
@@ -26,11 +30,70 @@ sub MAIN(Str $packageName,                     #= Package name.
     # Call the main function
     my Str $res;
     if $format.lc ∈ <whatever automatic plantuml plant-uml plant> {
+        $format = 'plantuml';
         $res = to-plant-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
     } elsif $format.lc ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
+        $format = 'wluml';
         $res = to-wl-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
     } else {
         die "Uknown format $format. The format value is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'";
+    }
+
+    if $plot {
+
+        if $format ne 'plantuml' {
+            note 'Plotting is implemented for format=PlantUML only.';
+            return
+        }
+
+        if !$jar && %*ENV<PLANTUMLJAR> {
+            $jar = %*ENV<PLANTUMLJAR>
+        } elsif !$jar && %*ENV<PLANTUML_JAR> {
+            $jar = %*ENV<PLANTUML_JAR>
+        }
+
+        if !$jar {
+            note 'Cannot find PlantUML JAR file.';
+            return;
+        }
+
+        if !$jar.IO.e {
+            note "The specified JAR file $jar does not exist.";
+            return;
+        }
+
+        if !$viewer {
+            given $*DISTRO {
+                when $_ ~~ / 'macos' .* / { $viewer = 'open' }
+                when !$_.is-win { $viewer = 'xdg-open' }
+                default {
+                    note 'Please provide an image viewer program (by setting --view).';
+                    return;
+                }
+            }
+        }
+
+        spurt '/tmp/myuml.puml', $res ~ "\n";
+        my $command = "java -jar $jar /tmp/myuml.puml > /tmp/myuml.png && $viewer /tmp/myuml.png";
+        shell $command;
+        return;
+
+
+        # ------------------------------
+        # Using PlantUML's online server
+        # ------------------------------
+        # I followed (tried to) the directions in
+        #  https://plantuml.com/text-encoding
+        # without success. It seems that:
+        # - The hex encoding of the specs are too long
+        # - Additional new line symbols have to be placed.
+
+        # my $url = 'http://www.plantuml.com/plantuml/uml/';
+
+        # my $encodedText = $res.encode>>.base(16).join.lc;
+        # shell 'open ' ~ $url ~ '~h' ~ $encodedText;
+        # return;
+
     }
 
     # Result
