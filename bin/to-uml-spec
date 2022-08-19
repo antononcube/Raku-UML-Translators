@@ -5,16 +5,16 @@ use UML::Translators;
 # subset lib_type of Any where Str|False;
 
 #| Make a UML diagram for a specified package.
-sub MAIN(Str $packageName,                     #= Package name.
-         Str :$type = "class",                 #= Type of the UML diagram.
-         Str :I($path) = '',                   #= Using include path to find libraries.
-         Bool :$attributes = True,             #= Should the class attributes be included in the UML diagrams or not?
-         Bool :$methods = True,                #= Should the class methods be included in the UML diagrams or not?
-         Bool :$conciseGrammarClasses = True,  #= Should grammar classes be shortened or not?
-         Str :$format is copy = 'PlantUML',    #= Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'.
-         Bool :$plot = False,                  #= Should the result be plotted or not?
-         Str :$jar is copy = '',               #= JAR file to use if --plot. If --jar is an empty string then PLANTUMLJAR and PLANTUML_JAR are attempted.
-         Str :$viewer is copy = ''             #= Image viewer program to use if --plot. If --viewer is an empty string then open is used on macOS and xdg-open on Linux.
+sub MAIN(Str $packageName,                       #= Package name.
+         Str :$type = "class",                   #= Type of the UML diagram.
+         Str :I($path) = '',                     #= Using include path to find libraries.
+         Bool :$attributes = True,               #= Should the class attributes be included in the UML diagrams or not?
+         Bool :$methods = True,                  #= Should the class methods be included in the UML diagrams or not?
+         Bool :$concise-grammar-classes = True,  #= Should grammar classes be shortened or not?
+         Str :$format is copy = 'PlantUML',      #= Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'.
+         Bool :$plot = False,                    #= Should the result be plotted or not?
+         Str :$jar is copy = '',                 #= JAR file to use if --plot. If --jar is an empty string then PLANTUMLJAR and PLANTUML_JAR are attempted.
+         Str :$viewer is copy = ''               #= Image viewer program to use if --plot. If --viewer is an empty string then open is used on macOS and xdg-open on Linux.
          ) {
 
     # If there is a library argument
@@ -31,10 +31,10 @@ sub MAIN(Str $packageName,                     #= Package name.
     my Str $res;
     if $format.lc ∈ <whatever automatic plantuml plant-uml plant> {
         $format = 'plantuml';
-        $res = to-plant-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+        $res = to-plant-uml-spec($packageName, :$type, :$attributes, :$methods, :$concise-grammar-classes);
     } elsif $format.lc ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
         $format = 'wluml';
-        $res = to-wl-uml-spec($packageName, :$type, :$attributes, :$methods, :$conciseGrammarClasses);
+        $res = to-wl-uml-spec($packageName, :$type, :$attributes, :$methods, :$concise-grammar-classes);
     } else {
         die "Uknown format $format. The format value is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'";
     }
