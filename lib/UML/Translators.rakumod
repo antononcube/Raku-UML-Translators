@@ -241,12 +241,17 @@ multi namespace-types(Positional $packageNames, Bool :$how-pairs) {
 # to-plant-uml-spec
 #============================================================
 
-#| Translation to PlantUML proto
-proto to-plant-uml-spec($packageNames,
+#| Translation to PlantUML.
+#| C<$spec> A package name string, a namespace string, or a list of strings.
+#| C<$attributes> Should attributes be included in the UML diagrams or not?
+#| C<$methods> Should methods be included in the UML diagrams or not?
+#| C<$$remove-unlinked> Should unlined UML entities be removed or not?
+#| See also to-uml-spec.
+proto to-plant-uml-spec($spec,
                         Str :$type = "class",
                         Bool :$attributes = True,
                         Bool :$methods = True,
-                        Bool :$conciseGrammarClasses = True,
+                        Bool :$concise-grammar-classes = True,
                         Bool :$remove-unlinked = False,
                         :$remove = ()) is export {*}
 
@@ -255,10 +260,10 @@ multi to-plant-uml-spec(Str $packageName,
                         Str :$type = "class",
                         Bool :$attributes = True,
                         Bool :$methods = True,
-                        Bool :$conciseGrammarClasses = True,
+                        Bool :$concise-grammar-classes = True,
                         Bool :$remove-unlinked = False,
                         :$remove = ()) {
-    to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$conciseGrammarClasses, :$remove-unlinked, :$remove)
+    return to-plant-uml-spec([$packageName], :$type, :$attributes, :$methods, :$concise-grammar-classes, :$remove-unlinked, :$remove);
 }
 
 #| Translation to PlantUML multiple package names
@@ -266,7 +271,7 @@ multi to-plant-uml-spec(Positional $packageNames,
                         Str :$type = "class",
                         Bool :$attributes = True,
                         Bool :$methods = True,
-                        Bool :$conciseGrammarClasses = True,
+                        Bool :$concise-grammar-classes = True,
                         Bool :$remove-unlinked = False,
                         :$remove is copy = ()) {
 
@@ -293,19 +298,23 @@ multi to-plant-uml-spec(Positional $packageNames,
 
     $res ~= "\n@enduml";
 
-    $res;
+    return $res;
 }
 
 #============================================================
 # to-wl-uml-spec
 #============================================================
 
-#| Translation to WL UML graph proto
-proto to-wl-uml-spec($packageNames,
+#| Translation to WL UML graph
+##| C<$spec> A package name string, a namespace string, or a list of strings.
+##| C<$attributes> Should attributes be included in the UML diagrams or not?
+##| C<$methods> Should methods be included in the UML diagrams or not?
+##| C<$$remove-unlinked> Should unlined UML entities be removed or not?
+proto to-wl-uml-spec($spec,
                      Str :$type = "class",
                      Bool :$attributes = True,
                      Bool :$methods = True,
-                     Bool :$conciseGrammarClasses = True,
+                     Bool :$concise-grammar-classes = True,
                      *%args) is export {*}
 
 #| Translation to WL UML graph single package name
@@ -313,9 +322,9 @@ multi to-wl-uml-spec(Str $packageName,
                      Str :$type = "class",
                      Bool :$attributes = True,
                      Bool :$methods = True,
-                     Bool :$conciseGrammarClasses = True,
+                     Bool :$concise-grammar-classes = True,
                      *%args) {
-    to-wl-uml-spec([$packageName], :$type, :$attributes, :$methods, |%args)
+    return to-wl-uml-spec([$packageName], :$type, :$attributes, :$methods, |%args);
 }
 
 #| Translation to WL UML graph multiple package names
@@ -323,7 +332,7 @@ multi to-wl-uml-spec(Positional $packageNames,
                      Str :$type = "class",
                      Bool :$attributes = True,
                      Bool :$methods = True,
-                     Bool :$conciseGrammarClasses = True,
+                     Bool :$concise-grammar-classes = True,
                      Str :$function-name = 'UMLClassGraph',
                      :$image-size = 'Large',
                      :$graph-layout is copy = Whatever) {
@@ -354,26 +363,26 @@ multi to-wl-uml-spec(Positional $packageNames,
             ', GraphLayout -> ' ~ $graph-layout ~ ']';
 
     # Result
-    $res;
+    return $res;
 }
 
 #============================================================
 # to-uml
 #============================================================
 
-#| Main translation function
-#| $packageNames Package names to find UML spec for.
-#| :$format Format for UML spec, one of 'PlantUML', 'WL-UML-Graph', or Whatever.
-#| :$type UML diagram type. (Only 'class' is currently implemented.)
-#| :$attributes Should the class attributes be included in the UML diagrams or not?
-#| :$methods Should the class methods be included in the UML diagrams or not?
-#| :$conciseGrammarClasses Should concise grammar classes be given in concise form or not?
+#| Main UML spec translation function.
+#| C<$spec> A package name string, a namespace string, or a list of strings.
+#| C<:$format> Format for UML spec, one of 'PlantUML', 'WL-UML-Graph', or Whatever.
+#| C<:$type> UML diagram type. (Only 'class' is currently implemented.)
+#| C<:$attributes> Should the class attributes be included in the UML diagrams or not?
+#| C<:$methods> Should the class methods be included in the UML diagrams or not?
+#| <:$concise-grammar-classes> Should concise grammar classes be given in concise form or not?
 sub to-uml-spec($packageNames,
                 :$format is copy = Whatever,
                 Str :$type = 'class',
                 Bool :$attributes = True,
                 Bool :$methods = True,
-                Bool :$conciseGrammarClasses = True,
+                Bool :$concise-grammar-classes = True,
                 Bool :$compact = False,
                 *%args) is export {
 
@@ -381,9 +390,9 @@ sub to-uml-spec($packageNames,
 
     my $res;
     if $format.lc ∈ <plantuml plant-uml plant> {
-        $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args);
+        $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$concise-grammar-classes, |%args);
     } elsif $format ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
-        $res = to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$conciseGrammarClasses, |%args)
+        $res = to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$concise-grammar-classes, |%args)
     } else {
         die "Uknown format $format. The value of the arugment format is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or Whatever.";
     }
