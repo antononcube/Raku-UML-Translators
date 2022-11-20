@@ -161,6 +161,7 @@ sub ClassDataToPlantUML($class is copy, Bool :$attributes = True, Bool :$methods
     return $plantUML;
 }
 
+
 #============================================================
 # ClassDataToWLGraphUML
 #============================================================
@@ -208,7 +209,71 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
 
 
 #============================================================
-# to-plant-uml-spec
+# ClassDataToMermaidJS
+#============================================================
+
+#| Generate MermaidJS code from the class/grammar/role data.
+sub ClassDataToMermaidJS($class is copy, Bool :$attributes = True, Bool :$methods = True) {
+
+    my %classData = ClassData($class);
+
+    if Routine ∈ %classData<parents> {
+        #$class = $class.name.subst('-', '_'):g;
+        $class = $class.name;
+        %classData<type> = 'routine';
+    }
+
+    my $annot =
+            do if %classData<type> eq 'role' { '<<role>>' }
+            elsif %classData<type> eq 'grammar' { '<<grammar>>' }
+            elsif %classData<type> eq 'routine' { '<<routine>>' }
+            elsif %classData<type> eq 'constant' { '<<constant>>' }
+            else { '' }
+
+    my Str $mermaidJS = '';
+
+    $mermaidJS = 'class ' ~ $class.raku.subst(:g, '::', '_') ~ ' {' ~ "\n";
+
+    if $annot {
+        $mermaidJS ~= '  ' ~ $annot ~ "\n";
+    }
+
+    if $attributes and %classData<type> ∉ <constant routine> {
+        for |%classData<attributes> -> $a {
+            $mermaidJS = $mermaidJS ~ '  +' ~ $a ~ "\n";
+        }
+    }
+
+    if $methods and %classData<type> ∉ <constant routine> {
+        for |%classData<methods> -> $m {
+            $mermaidJS = $mermaidJS ~ '  +' ~ $m ~ "()\n";
+        }
+    }
+
+    $mermaidJS = $mermaidJS ~ '}' ~ "\n";
+
+    for |%classData<parents> -> $p {
+        # This is needed in order to get MermaidJS work with, say, "Trie[Int]"
+        #my $new-parent = $p.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $p.raku ~ '"' !! $p.raku;
+        $mermaidJS = $mermaidJS ~ $class.raku.subst(:g, '::', '_') ~ ' --|> ' ~ $p.raku.subst(:g, '::', '_') ~ "\n"
+    }
+
+    for |%classData<roles> -> $r {
+        # This is needed in order to get MermaidJS work with, say, "Callable[Positional]"
+        my $new-role = $r.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $r ~ '"' !! $r;
+        $mermaidJS = $mermaidJS ~ $class.raku.subst(:g, '::', '_') ~ ' --|> ' ~ $new-role.subst(:g, '::', '_') ~ "\n"
+    }
+
+    $mermaidJS = $mermaidJS ~ "\n";
+
+    #s:g/ (<alpha>+) '::' (<alpha>+) / $1 / for $mermaidJS;
+
+    return $mermaidJS;
+}
+
+
+#============================================================
+# namespace-types
 #============================================================
 
 #| Get classes and roles of a namespace or a list of namespaces.
@@ -245,7 +310,7 @@ multi namespace-types(Positional $packageNames, Bool :$how-pairs) {
 #| C<$spec> A package name string, a namespace string, or a list of strings.
 #| C<$attributes> Should attributes be included in the UML diagrams or not?
 #| C<$methods> Should methods be included in the UML diagrams or not?
-#| C<$$remove-unlinked> Should unlined UML entities be removed or not?
+#| C<$remove-unlinked> Should unlined UML entities be removed or not?
 #| See also to-uml-spec.
 proto to-plant-uml-spec($spec,
                         Str :$type = "class",
@@ -291,6 +356,7 @@ multi to-plant-uml-spec(Positional $packageNames,
         $res ~= "\nremove @unlinked"
     }
 
+    if $remove.isa(Whatever) || $remove.isa(WhateverCode) { $remove = () }
     if ! $remove ~~ Positional { $remove = [$remove, ] }
     for [|$remove] -> $h {
         $res ~= "\nremove " ~ $h.Str
@@ -301,6 +367,7 @@ multi to-plant-uml-spec(Positional $packageNames,
     return $res;
 }
 
+
 #============================================================
 # to-wl-uml-spec
 #============================================================
@@ -309,7 +376,7 @@ multi to-plant-uml-spec(Positional $packageNames,
 ##| C<$spec> A package name string, a namespace string, or a list of strings.
 ##| C<$attributes> Should attributes be included in the UML diagrams or not?
 ##| C<$methods> Should methods be included in the UML diagrams or not?
-##| C<$$remove-unlinked> Should unlined UML entities be removed or not?
+##| C<$remove-unlinked> Should unlined UML entities be removed or not?
 proto to-wl-uml-spec($spec,
                      Str :$type = "class",
                      Bool :$attributes = True,
@@ -366,13 +433,80 @@ multi to-wl-uml-spec(Positional $packageNames,
     return $res;
 }
 
+
+#============================================================
+# to-plant-uml-spec
+#============================================================
+
+#| Translation to MermaidJS.
+#| C<$spec> A package name string, a namespace string, or a list of strings.
+#| C<$attributes> Should attributes be included in the UML diagrams or not?
+#| C<$methods> Should methods be included in the UML diagrams or not?
+#| C<$remove-unlinked> Should unlined UML entities be removed or not?
+#| See also to-uml-spec.
+proto to-mermaid-js-spec($spec,
+                         Str :$type = "class",
+                         Bool :$attributes = True,
+                         Bool :$methods = True,
+                         Bool :$concise-grammar-classes = True,
+                         Bool :$remove-unlinked = False,
+                         :$remove = ()) is export {*}
+
+#| Translation to PlantUML single package name
+multi to-mermaid-js-spec(Str $packageName,
+                         Str :$type = "class",
+                         Bool :$attributes = True,
+                         Bool :$methods = True,
+                         Bool :$concise-grammar-classes = True,
+                         Bool :$remove-unlinked = False,
+                         :$remove = ()) {
+    return to-mermaid-js-spec([$packageName], :$type, :$attributes, :$methods, :$concise-grammar-classes, :$remove-unlinked, :$remove);
+}
+
+#| Translation to PlantUML multiple package names
+multi to-mermaid-js-spec(Positional $packageNames,
+                         Str :$type = "class",
+                         Bool :$attributes = True,
+                         Bool :$methods = True,
+                         Bool :$concise-grammar-classes = True,
+                         Bool :$remove-unlinked = False,
+                         :$remove is copy = ()) {
+
+    my @classes = flat($packageNames.map({ TraverseNameSpace($_, $_) }));
+
+    #        for @classes -> $cl {
+    #            say '=' x 30;
+    #            say $cl.raku;
+    #            say ClassData( $cl );
+    #        }
+
+    my $res = @classes.map({ ClassDataToMermaidJS($_, :$attributes, :$methods) }).join("\n");
+
+    $res = "classDiagram\n" ~ $res;
+
+    if $remove-unlinked {
+        $res ~= "\nremove @unlinked"
+    }
+
+    if $remove.isa(Whatever) || $remove.isa(WhateverCode) { $remove = () }
+    if ! $remove ~~ Positional { $remove = [$remove, ] }
+    for [|$remove] -> $h {
+        $res ~= "\nremove " ~ $h.Str
+    }
+
+    $res ~= "\n";
+
+    return $res;
+}
+
+
 #============================================================
 # to-uml
 #============================================================
 
 #| Main UML spec translation function.
 #| C<$spec> A package name string, a namespace string, or a list of strings.
-#| C<:$format> Format for UML spec, one of 'PlantUML', 'WL-UML-Graph', or Whatever.
+#| C<:$format> Format for UML spec, one of 'MermaidJS', 'PlantUML', 'WL-UML-Graph', or Whatever.
 #| C<:$type> UML diagram type. (Only 'class' is currently implemented.)
 #| C<:$attributes> Should the class attributes be included in the UML diagrams or not?
 #| C<:$methods> Should the class methods be included in the UML diagrams or not?
@@ -393,8 +527,10 @@ sub to-uml-spec($packageNames,
         $res = to-plant-uml-spec($packageNames, :$type, :$attributes, :$methods, :$concise-grammar-classes, |%args);
     } elsif $format ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
         $res = to-wl-uml-spec($packageNames, :$type, :$attributes, :$methods, :$concise-grammar-classes, |%args)
+    } elsif $format ∈ <mermaidjs mermaid-js mermaid> {
+        $res = to-mermaid-js-spec($packageNames, :$type, :$attributes, :$methods, :$concise-grammar-classes, |%args)
     } else {
-        die "Uknown format $format. The value of the arugment format is expected to be one of 'Plant', 'PlantUML', 'WL', 'WLUML', or Whatever.";
+        die "Uknown format $format. The value of the arugment format is expected to be one of 'Mermaid', 'MermaidJS', 'Plant', 'PlantUML', 'WL', 'WLUML', or Whatever.";
     }
 
     if $compact {
