@@ -8,11 +8,21 @@ specifications and vice versa.
 
 Currently, the package only translates Object-Oriented Programming (OOP) Raku code into: 
 
-- The Domain Specific Language (DSL) of [PlantUML](https://plantuml.com)
+- The Domain Specific Language (DSL) of [Mermaid-JS](https://mermaid-js.github.io/mermaid/)
+
+- The DSL of [PlantUML](https://plantuml.com)
 
 - Argument specification of the UML class diagram function [`UMLClassGraph`](https://github.com/antononcube/MathematicaForPrediction/blob/master/Misc/UMLDiagramGeneration.m)
   of the Mathematica / Wolfram Language (WL) package [AAp1] 
 
+See [AA2] for usage examples of both PlantUML and `UMLClassGraph` in Mathematica.
+
+**Remark:** The package provides Command Line Interface (CLI) script.
+
+**Remark:** (Currently) the development of PlantUML is more robust and complete than that of Mermaid-JS.
+Hence, workflow-wise, using this package to generate PlantUML specs would produce (on average) best results.
+
+  
 ### Future plans
 
 A fully fledged version of this package would translate:
@@ -44,7 +54,9 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 
 ------ 
 
-## Command Line Interface (CLI)
+## Command Line Interface
+
+The package provides the CLI script `to-uml-spec`. Here is its usage message:
 
 ```shell
 to-uml-spec --help
@@ -67,16 +79,16 @@ to-uml-spec --help
 
 ### Usage examples
 
-Using the script [`to-uml-spec`](bin/to-uml-spec):
+Generate PlantUML spec for the Raku package 
+["ML::Clustering"](https://raku.land/zef:antononcube/ML::Clustering):
 
 ```shell
 to-uml-spec --/methods --/attributes "ML::Clustering"
 ```
 ```
 # @startuml
-# class ML::Clustering::KMeans  {
+# class ML::Clustering::DistanceFunctions <<role>> {
 # }
-# ML::Clustering::KMeans --|> ML::Clustering::DistanceFunctions
 # 
 # 
 # class "find-clusters" <<routine>> {
@@ -95,8 +107,9 @@ to-uml-spec --/methods --/attributes "ML::Clustering"
 # "k-means" --|> Callable
 # 
 # 
-# class ML::Clustering::DistanceFunctions <<role>> {
+# class ML::Clustering::KMeans  {
 # }
+# ML::Clustering::KMeans --|> ML::Clustering::DistanceFunctions
 # 
 # 
 # @enduml
@@ -128,6 +141,25 @@ to-uml-spec('MyPackageClass')
 ```
 ```
 # @startuml
+# class MyPackageClass::C  {
+#   {field} $!c-var
+#   {method} BUILDALL
+#   {method} a1
+#   {method} c1
+# }
+# MyPackageClass::C --|> MyPackageClass::A
+# 
+# 
+# class MyPackageClass::B <<role>> {
+#   {method} b1
+# }
+# 
+# 
+# class MyPackageClass::A <<role>> {
+#   {method} a1
+# }
+# 
+# 
 # class MyPackageClass::D  {
 #   {field} $!c-var
 #   {field} $!d-var
@@ -138,25 +170,6 @@ to-uml-spec('MyPackageClass')
 # MyPackageClass::D --|> MyPackageClass::C
 # MyPackageClass::D --|> MyPackageClass::A
 # MyPackageClass::D --|> MyPackageClass::B
-# 
-# 
-# class MyPackageClass::B <<role>> {
-#   {method} b1
-# }
-# 
-# 
-# class MyPackageClass::C  {
-#   {field} $!c-var
-#   {method} BUILDALL
-#   {method} a1
-#   {method} c1
-# }
-# MyPackageClass::C --|> MyPackageClass::A
-# 
-# 
-# class MyPackageClass::A <<role>> {
-#   {method} a1
-# }
 # 
 # 
 # @enduml
@@ -172,10 +185,6 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
 ```
 # @startuml
-# class Chemistry::Stoichiometry::ResourceAccess  {
-# }
-# 
-# 
 # class Chemistry::Stoichiometry::Grammar <<grammar>> {
 # }
 # Chemistry::Stoichiometry::Grammar --|> Grammar
@@ -186,7 +195,7 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # Chemistry::Stoichiometry::Grammar --|> NQPMatchRole
 # 
 # 
-# class Chemistry::Stoichiometry::Grammar::ChemicalEquation <<role>> {
+# class Chemistry::Stoichiometry::ResourceAccess  {
 # }
 # 
 # 
@@ -194,17 +203,21 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # }
 # 
 # 
-# class Chemistry::Stoichiometry::Actions::EquationMatrix  {
+# class Chemistry::Stoichiometry::Grammar::ChemicalEquation <<role>> {
 # }
 # 
 # 
-# class Chemistry::Stoichiometry::Actions::MolecularMass  {
+# class Chemistry::Stoichiometry::Actions::EquationMatrix  {
 # }
 # 
 # 
 # class Chemistry::Stoichiometry::Actions::EquationBalance  {
 # }
 # Chemistry::Stoichiometry::Actions::EquationBalance --|> Chemistry::Stoichiometry::Actions::EquationMatrix
+# 
+# 
+# class Chemistry::Stoichiometry::Actions::MolecularMass  {
+# }
 # 
 # 
 # class Chemistry::Stoichiometry::Actions::WL::System  {
@@ -266,6 +279,16 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 ```
 ```
 # classDiagram
+# class ML_Clustering_DistanceFunctions {
+#   <<role>>
+# }
+# 
+# 
+# class ML_Clustering_KMeans {
+# }
+# ML_Clustering_KMeans --|> ML_Clustering_DistanceFunctions
+# 
+# 
 # class k_means {
 #   <<routine>>
 # }
@@ -282,16 +305,6 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 # find_clusters --|> Block
 # find_clusters --|> Code
 # find_clusters --|> Callable
-# 
-# 
-# class ML_Clustering_DistanceFunctions {
-#   <<role>>
-# }
-# 
-# 
-# class ML_Clustering_KMeans {
-# }
-# ML_Clustering_KMeans --|> ML_Clustering_DistanceFunctions
 ```
 
 (Because of the empty definition `ML_Clustering_KMeans {  }`.)
@@ -310,6 +323,11 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 ["Find programmatically all classes, grammars, and roles in a Raku package"](https://stackoverflow.com/q/68622047/14163984),
 (2021),
 [StackOverflow](https://stackoverflow.com).
+
+[AA2] Anton Antonov,
+["Generating UML diagrams for Raku namespaces"](https://community.wolfram.com/groups/-/m/t/2549055),
+(2022),
+[community.wolfram.com](https://community.wolfram.com).
 
 [AAp1] Anton Antonov,
 ["UML Diagram Generation Mathematica package"](https://github.com/antononcube/MathematicaForPrediction/blob/master/Misc/UMLDiagramGeneration.m),

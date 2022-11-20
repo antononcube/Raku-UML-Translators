@@ -8,11 +8,21 @@ specifications and vice versa.
 
 Currently, the package only translates Object-Oriented Programming (OOP) Raku code into: 
 
-- The Domain Specific Language (DSL) of [PlantUML](https://plantuml.com)
+- The Domain Specific Language (DSL) of [Mermaid-JS](https://mermaid-js.github.io/mermaid/)
+
+- The DSL of [PlantUML](https://plantuml.com)
 
 - Argument specification of the UML class diagram function [`UMLClassGraph`](https://github.com/antononcube/MathematicaForPrediction/blob/master/Misc/UMLDiagramGeneration.m)
   of the Mathematica / Wolfram Language (WL) package [AAp1] 
 
+See [AA2] for usage examples of both PlantUML and `UMLClassGraph` in Mathematica.
+
+**Remark:** The package provides Command Line Interface (CLI) script.
+
+**Remark:** (Currently) the development of PlantUML is more robust and complete than that of Mermaid-JS.
+Hence, workflow-wise, using this package to generate PlantUML specs would produce (on average) best results.
+
+  
 ### Future plans
 
 A fully fledged version of this package would translate:
@@ -41,7 +51,9 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 
 ------ 
 
-## Command Line Interface (CLI)
+## Command Line Interface
+
+The package provides the CLI script `to-uml-spec`. Here is its usage message:
 
 ```shell
 to-uml-spec --help
@@ -49,7 +61,8 @@ to-uml-spec --help
 
 ### Usage examples
 
-Using the script [`to-uml-spec`](bin/to-uml-spec):
+Generate PlantUML spec for the Raku package 
+["ML::Clustering"](https://raku.land/zef:antononcube/ML::Clustering):
 
 ```shell
 to-uml-spec --/methods --/attributes "ML::Clustering"
@@ -137,6 +150,11 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 ["Find programmatically all classes, grammars, and roles in a Raku package"](https://stackoverflow.com/q/68622047/14163984),
 (2021),
 [StackOverflow](https://stackoverflow.com).
+
+[AA2] Anton Antonov,
+["Generating UML diagrams for Raku namespaces"](https://community.wolfram.com/groups/-/m/t/2549055),
+(2022),
+[community.wolfram.com](https://community.wolfram.com).
 
 [AAp1] Anton Antonov,
 ["UML Diagram Generation Mathematica package"](https://github.com/antononcube/MathematicaForPrediction/blob/master/Misc/UMLDiagramGeneration.m),
