@@ -212,13 +212,25 @@ sub ClassDataToWLGraphUML($class is copy, Bool :$attributes = True, Bool :$metho
 # ClassDataToMermaidJS
 #============================================================
 
+multi to-mermaid-class-name(Str $class) {
+    my Str $className = $class.subst(:g, '::', '_');
+    $className = $className.subst(:g, '-', '_');
+    if $className ~~ / ^ '"' (.+) '"' $ / {
+        $className = $className.substr(2, *-1);
+    }
+    return $className;
+}
+
+multi to-mermaid-class-name($class where * !~~ Str) {
+    return to-mermaid-class-name($class.raku);
+}
+
 #| Generate MermaidJS code from the class/grammar/role data.
 sub ClassDataToMermaidJS($class is copy, Bool :$attributes = True, Bool :$methods = True) {
 
     my %classData = ClassData($class);
 
     if Routine ∈ %classData<parents> {
-        #$class = $class.name.subst('-', '_'):g;
         $class = $class.name;
         %classData<type> = 'routine';
     }
@@ -232,7 +244,7 @@ sub ClassDataToMermaidJS($class is copy, Bool :$attributes = True, Bool :$method
 
     my Str $mermaidJS = '';
 
-    $mermaidJS = 'class ' ~ $class.raku.subst(:g, '::', '_') ~ ' {' ~ "\n";
+    $mermaidJS = 'class ' ~ to-mermaid-class-name($class) ~ ' {' ~ "\n";
 
     if $annot {
         $mermaidJS ~= '  ' ~ $annot ~ "\n";
@@ -253,20 +265,14 @@ sub ClassDataToMermaidJS($class is copy, Bool :$attributes = True, Bool :$method
     $mermaidJS = $mermaidJS ~ '}' ~ "\n";
 
     for |%classData<parents> -> $p {
-        # This is needed in order to get MermaidJS work with, say, "Trie[Int]"
-        #my $new-parent = $p.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $p.raku ~ '"' !! $p.raku;
-        $mermaidJS = $mermaidJS ~ $class.raku.subst(:g, '::', '_') ~ ' --|> ' ~ $p.raku.subst(:g, '::', '_') ~ "\n"
+        $mermaidJS = $mermaidJS ~ to-mermaid-class-name($class) ~ ' --|> ' ~  to-mermaid-class-name($p) ~ "\n"
     }
 
     for |%classData<roles> -> $r {
-        # This is needed in order to get MermaidJS work with, say, "Callable[Positional]"
-        my $new-role = $r.raku.contains(/ '[' | ']' | '-' /) ?? '"' ~ $r ~ '"' !! $r;
-        $mermaidJS = $mermaidJS ~ $class.raku.subst(:g, '::', '_') ~ ' --|> ' ~ $new-role.subst(:g, '::', '_') ~ "\n"
+        $mermaidJS = $mermaidJS ~ to-mermaid-class-name($class) ~ ' --|> ' ~ to-mermaid-class-name($r) ~ "\n"
     }
 
     $mermaidJS = $mermaidJS ~ "\n";
-
-    #s:g/ (<alpha>+) '::' (<alpha>+) / $1 / for $mermaidJS;
 
     return $mermaidJS;
 }
