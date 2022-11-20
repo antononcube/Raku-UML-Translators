@@ -44,17 +44,7 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 ## Command Line Interface (CLI)
 
 ```shell
-> to-uml-spec --help
-Usage:
-  to-uml-spec [--type=<Str>] [-I=<Str>] [--attributes] [--methods] [--conciseGrammarClasses] [--format=<Str>] <packageName> -- Make a UML diagram for a specified package.
-  
-    <packageName>              Package name.
-    --type=<Str>               Type of the UML diagram. [default: 'class']
-    -I=<Str>                   Using include path to find libraries. [default: '']
-    --attributes               Should the class attributes be included in the UML diagrams or not? [default: True]
-    --methods                  Should the class methods be included in the UML diagrams or not? [default: True]
-    --conciseGrammarClasses    Should grammar classes be shortened or not? [default: True]
-    --format=<Str>             Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'. [default: 'PlantUML']
+to-uml-spec --help
 ```
 
 ### Usage examples
@@ -62,14 +52,14 @@ Usage:
 Using the script [`to-uml-spec`](bin/to-uml-spec):
 
 ```shell
-to-uml-spec --/methods --/attributes "Lingua::NumericWordForms"
+to-uml-spec --/methods --/attributes "ML::Clustering"
 ```
 
 With this shell command we generate a Plant UML spec for the package 
 ["Chemistry::Stoichiometry"](https://raku.land/cpan:ANTONOV/Chemistry::Stoichiometry)
 and create the UML diagram image with a local PlantUML JAR file (downloaded from [PUML1]):
 
-```shell
+```
 to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Downloads/plantuml-1.2022.5.jar -pipe -tjpg > /tmp/myuml.jpg
 ```
 
@@ -111,6 +101,32 @@ Get the classes, roles, subs, and constants of a namespace:
 
 ```perl6
 .say for namespace-types('ML::TriesWithFrequencies', :how-pairs).sort(*.key)
+```
+
+------ 
+
+## Potential problems
+
+### Mermaid JS
+
+The package can export class diagrams in the 
+[Mermaid-JS format](https://mermaid-js.github.io/mermaid/#/classDiagram).
+Unfortunately, currently (November 2022) Mermaid-JS does not support colon characters in class names.
+Hence, colons are replaced with underscores.
+
+Also, currently (November 2022) class specs in Mermaid-JS cannot be empty. I.e. the Mermaid JS code
+generated here ***will not*** produce a diagram:
+
+```shell
+to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid  
+```
+
+(Because of the empty definition `ML_Clustering_KMeans {  }`.)
+
+This command should produce Mermaid JS code that will produce diagram:
+
+```
+to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid  
 ```
 
 ------ 

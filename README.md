@@ -32,6 +32,9 @@ encoded in XML and JSON.
 ```shell
 zef install UML::Translators
 ```
+```
+# No reason to proceed. Use --force-install to continue anyway
+```
 
 ### From GitHub
 
@@ -44,17 +47,22 @@ zef install https://github.com/antononcube/Raku-UML-Translators.git
 ## Command Line Interface (CLI)
 
 ```shell
-> to-uml-spec --help
-Usage:
-  to-uml-spec [--type=<Str>] [-I=<Str>] [--attributes] [--methods] [--conciseGrammarClasses] [--format=<Str>] <packageName> -- Make a UML diagram for a specified package.
-  
-    <packageName>              Package name.
-    --type=<Str>               Type of the UML diagram. [default: 'class']
-    -I=<Str>                   Using include path to find libraries. [default: '']
-    --attributes               Should the class attributes be included in the UML diagrams or not? [default: True]
-    --methods                  Should the class methods be included in the UML diagrams or not? [default: True]
-    --conciseGrammarClasses    Should grammar classes be shortened or not? [default: True]
-    --format=<Str>             Format of the output, one of 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'. [default: 'PlantUML']
+to-uml-spec --help
+```
+```
+# Usage:
+#   to-uml-spec <packageName> [--type=<Str>] [-I=<Str>] [--attributes] [--methods] [--concise-grammar-classes] [--format=<Str>] [--plot] [--jar=<Str>] [--viewer=<Str>] -- Make a UML diagram for a specified package.
+#   
+#     <packageName>                Package name.
+#     --type=<Str>                 Type of the UML diagram. [default: 'class']
+#     -I=<Str>                     Using include path to find libraries. [default: '']
+#     --attributes                 Should the class attributes be included in the UML diagrams or not? [default: True]
+#     --methods                    Should the class methods be included in the UML diagrams or not? [default: True]
+#     --concise-grammar-classes    Should grammar classes be shortened or not? [default: True]
+#     --format=<Str>               Format of the output, one of 'Mermaid', 'MermaidJS', 'Plant', 'PlantUML', 'WL', 'WLUML', or 'Whatever'. [default: 'PlantUML']
+#     --plot                       Should the result be plotted or not? [default: False]
+#     --jar=<Str>                  JAR file to use if --plot. If --jar is an empty string then PLANTUMLJAR and PLANTUML_JAR are attempted. [default: '']
+#     --viewer=<Str>               Image viewer program to use if --plot. If --viewer is an empty string then open is used on macOS and xdg-open on Linux. [default: '']
 ```
 
 ### Usage examples
@@ -62,14 +70,43 @@ Usage:
 Using the script [`to-uml-spec`](bin/to-uml-spec):
 
 ```shell
-to-uml-spec --/methods --/attributes "Lingua::NumericWordForms"
+to-uml-spec --/methods --/attributes "ML::Clustering"
+```
+```
+# @startuml
+# class ML::Clustering::KMeans  {
+# }
+# ML::Clustering::KMeans --|> ML::Clustering::DistanceFunctions
+# 
+# 
+# class "find-clusters" <<routine>> {
+# }
+# "find-clusters" --|> Routine
+# "find-clusters" --|> Block
+# "find-clusters" --|> Code
+# "find-clusters" --|> Callable
+# 
+# 
+# class "k-means" <<routine>> {
+# }
+# "k-means" --|> Routine
+# "k-means" --|> Block
+# "k-means" --|> Code
+# "k-means" --|> Callable
+# 
+# 
+# class ML::Clustering::DistanceFunctions <<role>> {
+# }
+# 
+# 
+# @enduml
 ```
 
 With this shell command we generate a Plant UML spec for the package 
 ["Chemistry::Stoichiometry"](https://raku.land/cpan:ANTONOV/Chemistry::Stoichiometry)
 and create the UML diagram image with a local PlantUML JAR file (downloaded from [PUML1]):
 
-```shell
+```
 to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Downloads/plantuml-1.2022.5.jar -pipe -tjpg > /tmp/myuml.jpg
 ```
 
@@ -91,6 +128,18 @@ to-uml-spec('MyPackageClass')
 ```
 ```
 # @startuml
+# class MyPackageClass::D  {
+#   {field} $!c-var
+#   {field} $!d-var
+#   {method} BUILDALL
+#   {method} b1
+#   {method} d1
+# }
+# MyPackageClass::D --|> MyPackageClass::C
+# MyPackageClass::D --|> MyPackageClass::A
+# MyPackageClass::D --|> MyPackageClass::B
+# 
+# 
 # class MyPackageClass::B <<role>> {
 #   {method} b1
 # }
@@ -103,18 +152,6 @@ to-uml-spec('MyPackageClass')
 #   {method} c1
 # }
 # MyPackageClass::C --|> MyPackageClass::A
-# 
-# 
-# class MyPackageClass::D  {
-#   {field} $!c-var
-#   {field} $!d-var
-#   {method} BUILDALL
-#   {method} b1
-#   {method} d1
-# }
-# MyPackageClass::D --|> MyPackageClass::C
-# MyPackageClass::D --|> MyPackageClass::A
-# MyPackageClass::D --|> MyPackageClass::B
 # 
 # 
 # class MyPackageClass::A <<role>> {
@@ -135,6 +172,10 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
 ```
 # @startuml
+# class Chemistry::Stoichiometry::ResourceAccess  {
+# }
+# 
+# 
 # class Chemistry::Stoichiometry::Grammar <<grammar>> {
 # }
 # Chemistry::Stoichiometry::Grammar --|> Grammar
@@ -143,10 +184,6 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # Chemistry::Stoichiometry::Grammar --|> Chemistry::Stoichiometry::Grammar::ChemicalElement
 # Chemistry::Stoichiometry::Grammar --|> Chemistry::Stoichiometry::Grammar::ChemicalEquation
 # Chemistry::Stoichiometry::Grammar --|> NQPMatchRole
-# 
-# 
-# class Chemistry::Stoichiometry::ResourceAccess  {
-# }
 # 
 # 
 # class Chemistry::Stoichiometry::Grammar::ChemicalEquation <<role>> {
@@ -208,6 +245,61 @@ Get the classes, roles, subs, and constants of a namespace:
 # ML::TriesWithFrequencies::Trieish => Perl6::Metamodel::ParametricRoleGroupHOW
 # TRIEROOT => Str
 # TRIEVALUE => Str
+```
+
+------ 
+
+## Potential problems
+
+### Mermaid JS
+
+The package can export class diagrams in the 
+[Mermaid-JS format](https://mermaid-js.github.io/mermaid/#/classDiagram).
+Unfortunately, currently (November 2022) Mermaid-JS does not support colon characters in class names.
+Hence, colons are replaced with underscores.
+
+Also, currently (November 2022) class specs in Mermaid-JS cannot be empty. I.e. the Mermaid JS code
+generated here ***will not*** produce a diagram:
+
+```shell
+to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid  
+```
+```
+# classDiagram
+# class k_means {
+#   <<routine>>
+# }
+# k_means --|> Routine
+# k_means --|> Block
+# k_means --|> Code
+# k_means --|> Callable
+# 
+# 
+# class find_clusters {
+#   <<routine>>
+# }
+# find_clusters --|> Routine
+# find_clusters --|> Block
+# find_clusters --|> Code
+# find_clusters --|> Callable
+# 
+# 
+# class ML_Clustering_DistanceFunctions {
+#   <<role>>
+# }
+# 
+# 
+# class ML_Clustering_KMeans {
+# }
+# ML_Clustering_KMeans --|> ML_Clustering_DistanceFunctions
+```
+
+(Because of the empty definition `ML_Clustering_KMeans {  }`.)
+
+This command should produce Mermaid JS code that will produce diagram:
+
+```
+to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid  
 ```
 
 ------ 
