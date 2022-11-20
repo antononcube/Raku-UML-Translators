@@ -39,7 +39,7 @@ encoded in XML and JSON.
 
 ### From zef's ecosystem
 
-```shell
+```
 zef install UML::Translators
 ```
 
@@ -82,6 +82,8 @@ to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Do
 
 ### UML for ad hoc classes
 
+Here we generate a PlantUML spec:
+
 ```perl6
 use UML::Translators;
 module MyPackageClass {
@@ -91,6 +93,12 @@ module MyPackageClass {
   class D does B is C { has $!d-var; method d1 {} }
 }
 to-uml-spec('MyPackageClass')
+```
+
+Here we generate a MermaidJS spec:
+
+```perl6, outputPrompt=NONE, outputLang=mermaid
+to-uml-spec('MyPackageClass', format => 'mermaid')
 ```
 
 ### UML for packages

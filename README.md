@@ -39,11 +39,8 @@ encoded in XML and JSON.
 
 ### From zef's ecosystem
 
-```shell
+```
 zef install UML::Translators
-```
-```
-# No reason to proceed. Use --force-install to continue anyway
 ```
 
 ### From GitHub
@@ -87,10 +84,6 @@ to-uml-spec --/methods --/attributes "ML::Clustering"
 ```
 ```
 # @startuml
-# class ML::Clustering::DistanceFunctions <<role>> {
-# }
-# 
-# 
 # class "find-clusters" <<routine>> {
 # }
 # "find-clusters" --|> Routine
@@ -112,6 +105,10 @@ to-uml-spec --/methods --/attributes "ML::Clustering"
 # ML::Clustering::KMeans --|> ML::Clustering::DistanceFunctions
 # 
 # 
+# class ML::Clustering::DistanceFunctions <<role>> {
+# }
+# 
+# 
 # @enduml
 ```
 
@@ -128,6 +125,8 @@ to-uml-spec --/methods --/attributes 'Chemistry::Stoichiometry' | java -jar ~/Do
 ## Raku session
 
 ### UML for ad hoc classes
+
+Here we generate a PlantUML spec:
 
 ```perl6
 use UML::Translators;
@@ -150,16 +149,6 @@ to-uml-spec('MyPackageClass')
 # MyPackageClass::C --|> MyPackageClass::A
 # 
 # 
-# class MyPackageClass::B <<role>> {
-#   {method} b1
-# }
-# 
-# 
-# class MyPackageClass::A <<role>> {
-#   {method} a1
-# }
-# 
-# 
 # class MyPackageClass::D  {
 #   {field} $!c-var
 #   {field} $!d-var
@@ -172,7 +161,57 @@ to-uml-spec('MyPackageClass')
 # MyPackageClass::D --|> MyPackageClass::B
 # 
 # 
+# class MyPackageClass::B <<role>> {
+#   {method} b1
+# }
+# 
+# 
+# class MyPackageClass::A <<role>> {
+#   {method} a1
+# }
+# 
+# 
 # @enduml
+```
+
+Here we generate a MermaidJS spec:
+
+```perl6, outputPrompt=NONE, outputLang=mermaid
+to-uml-spec('MyPackageClass', format => 'mermaid')
+```
+```mermaid
+classDiagram
+class MyPackageClass_C {
+  +$!c-var
+  +BUILDALL()
+  +a1()
+  +c1()
+}
+MyPackageClass_C --|> MyPackageClass_A
+
+
+class MyPackageClass_D {
+  +$!c-var
+  +$!d-var
+  +BUILDALL()
+  +b1()
+  +d1()
+}
+MyPackageClass_D --|> MyPackageClass_C
+MyPackageClass_D --|> MyPackageClass_A
+MyPackageClass_D --|> MyPackageClass_B
+
+
+class MyPackageClass_B {
+  <<role>>
+  +b1()
+}
+
+
+class MyPackageClass_A {
+  <<role>>
+  +a1()
+}
 ```
 
 ### UML for packages
@@ -185,6 +224,10 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 ```
 ```
 # @startuml
+# class Chemistry::Stoichiometry::ResourceAccess  {
+# }
+# 
+# 
 # class Chemistry::Stoichiometry::Grammar <<grammar>> {
 # }
 # Chemistry::Stoichiometry::Grammar --|> Grammar
@@ -195,19 +238,11 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # Chemistry::Stoichiometry::Grammar --|> NQPMatchRole
 # 
 # 
-# class Chemistry::Stoichiometry::ResourceAccess  {
-# }
-# 
-# 
-# class Chemistry::Stoichiometry::Grammar::ChemicalElement <<role>> {
-# }
-# 
-# 
 # class Chemistry::Stoichiometry::Grammar::ChemicalEquation <<role>> {
 # }
 # 
 # 
-# class Chemistry::Stoichiometry::Actions::EquationMatrix  {
+# class Chemistry::Stoichiometry::Grammar::ChemicalElement <<role>> {
 # }
 # 
 # 
@@ -217,6 +252,10 @@ say to-uml-spec('Chemistry::Stoichiometry'):!methods:!attributes
 # 
 # 
 # class Chemistry::Stoichiometry::Actions::MolecularMass  {
+# }
+# 
+# 
+# class Chemistry::Stoichiometry::Actions::EquationMatrix  {
 # }
 # 
 # 
@@ -279,11 +318,6 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 ```
 ```
 # classDiagram
-# class ML_Clustering_DistanceFunctions {
-#   <<role>>
-# }
-# 
-# 
 # class ML_Clustering_KMeans {
 # }
 # ML_Clustering_KMeans --|> ML_Clustering_DistanceFunctions
@@ -296,6 +330,11 @@ to-uml-spec --/methods --/attributes "ML::Clustering" --format=mermaid
 # k_means --|> Block
 # k_means --|> Code
 # k_means --|> Callable
+# 
+# 
+# class ML_Clustering_DistanceFunctions {
+#   <<role>>
+# }
 # 
 # 
 # class find_clusters {
