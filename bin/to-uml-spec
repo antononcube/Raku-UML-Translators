@@ -37,7 +37,7 @@ sub MAIN(Str $packageName,                       #= Package name.
     } elsif $format.lc ∈ <wl wluml wl-uml wlumlgraph wl-uml-graph mathematica> {
         $format = 'wluml';
         $res = to-wl-uml-spec($packageName, :$type, :$attributes, :$methods, :$concise-grammar-classes);
-    } elsif $format ∈ <mermaidjs mermaid-js mermaid> {
+    } elsif $format.lc ∈ <mermaidjs mermaid-js mermaid> {
         $format = 'mermaidjs';
         $res = to-mermaid-js-spec($packageName, :$type, :$attributes, :$methods, :$concise-grammar-classes);
     } else {
