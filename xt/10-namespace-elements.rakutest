@@ -1,0 +1,47 @@
+use v6.d;
+use Test;
+
+use UML::Translators;
+
+plan 9;
+
+# 1
+use-ok "Data::Reshapers";
+
+# 2
+use-ok "DSL::English::DataQueryWorkflows";
+
+# 3
+use-ok "DSL::English::RecommenderWorkflows";
+
+# 4
+ok namespace-types( 'Data::Reshapers' );
+
+# 5
+ok namespace-types( 'Data::Reshapers' ):how-pairs;
+
+# 6
+my $res6 = namespace-types('Data::Reshapers', :how-pairs);
+is ($res6 ~~ Positional) && ($res6.all ~~ Pair),
+        True,
+        'Data::Reshapers expected :how-pairs result';
+
+# 7
+my $res7 = namespace-types('DSL::English::DataQueryWorkflows', :how-pairs);
+is ($res7 ~~ Positional) && ($res7.all ~~ Pair),
+        True,
+        'DSL::English::DataQueryWorkflows expected :how-pairs result';
+
+# 8
+my $res8 = namespace-types('DSL::English::DataQueryWorkflows', :how-pairs);
+is ([or] $res8.map({ $_.value.Str.contains('Role')})),
+        True,
+        'DSL::English::DataQueryWorkflows expected Roles in :how-pairs result';
+
+# 9
+my $res9 = namespace-types('DSL::English::RecommenderWorkflows', :how-pairs);
+is ([or] $res9.map({ $_.value.Str.contains('Role')})),
+        True,
+        'DSL::English::RecommenderWorkflows expected Roles in :how-pairs result';
+
+done-testing;
